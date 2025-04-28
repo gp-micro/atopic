@@ -1,0 +1,437 @@
+---
+title: "RectalSwab 16S Analysis"
+author: "Theodora Karagounis"
+date: "2024-07-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Library Import
+
+```{r library import, message=FALSE}
+library(tidyverse)
+library(readxl)
+library(writexl)
+library(phyloseq)
+library(qiime2R)
+library(vegan)
+library(ggsignif)
+library(ggpmisc)
+```
+
+## Outpath
+
+```{r outpath}
+outpath <- 'Output/'
+```
+
+## Data Import
+
+```{r importing raw reads}
+
+physeq_noS<-qza_to_phyloseq(
+    features = "QIIME_Processed/sample-taxa-filtered-table.qza",
+    tree= "QIIME_Processed/rooted-tree.qza",
+    taxonomy= "QIIME_Processed/taxonomy-sample-taxa-filtered.qza",
+    metadata ="rectal_metadata.tsv")
+
+physeq_noS
+
+#Prune samples for any ASVs that are zero in all samples (there are none)
+physeq_noS <- prune_taxa(taxa_sums(physeq_noS) > 0, physeq_noS)
+
+#Salinibacter, Mitochondria, and Chloroplast have all already been removed
+```
+
+## Data Clean Up
+
+```{r data clean up}
+
+#Samples to exclude due to receiving antibiotics or systemic meds
+physeq_noS <- subset_samples(physeq_noS, !(subject_name %in% c("3AD2","3AD3","3AD4","26AD2","26AD3","26AD4","29AD2","43AD2","45AD2","61AD2","66AD2","11AD2")))
+                             
+#Defining NA labels
+taxtable_noNA <- data.frame(tax_table(physeq_noS))
+taxtable_noNA <- taxtable_noNA %>%
+  dplyr::mutate(Order = ifelse(is.na(Order), paste0(Class, "_unspecified"), Order)) %>%
+  dplyr::mutate(Family = ifelse(is.na(Family), paste0(Order, "_unspecified"), Family)) %>%
+  dplyr::mutate(Genus = ifelse(is.na(Genus), paste0(Family, "_unspecified"), Genus)) %>%
+  dplyr::mutate(Species = ifelse(is.na(Species), paste0(Genus, "_unspecified"), Species))
+
+phyloseq::tax_table(physeq_noS) <- as.matrix(taxtable_noNA)
+
+#Make everything relative
+physeq_noS.rel = transform_sample_counts(physeq_noS, function(x) x/sum(x))
+
+#Glom on Genus level
+physeq_noS.genus <- tax_glom(physeq_noS, "Genus")
+
+#Make everything relative
+physeq_noS.genus.rel = transform_sample_counts(physeq_noS.genus , function(x) x/sum(x))
+
+#First timepoints only
+physeq_noS.ASV.timept1 <- subset_samples(physeq_noS, timepoint == 1)
+physeq_noS.genus.timept1 <- subset_samples(physeq_noS.genus, timepoint == 1)
+
+#First timepoints and AD only
+physeq_noS.ASV.timept1AD <- subset_samples(physeq_noS.ASV.timept1, arm == "AD")
+physeq_noS.genus.timept1AD <- subset_samples(physeq_noS.genus.timept1, arm == "AD")
+```
+
+## Alpha Diversity
+
+### ASV
+
+#### S. aureus in the rectum vs. not
+
+```{r alpha diversity ASV}
+
+#Limiting to first timepoint samples
+adiv_AD_1st <- data.frame(
+  "Observed" = phyloseq::estimate_richness(physeq_noS.ASV.timept1AD, measures = "Observed"),
+  "Shannon" = phyloseq::estimate_richness(physeq_noS.ASV.timept1AD, measures = "Shannon"),
+  "Simpson" = phyloseq::estimate_richness(physeq_noS.ASV.timept1AD, measures = "Simpson"),
+  "InvSimpson" = phyloseq::estimate_richness(physeq_noS.ASV.timept1AD, measures = "InvSimpson")[, 1],
+  "Status" = phyloseq::sample_data(physeq_noS.ASV.timept1AD)$arm,
+  "SaureusRyesno" = phyloseq::sample_data(physeq_noS.ASV.timept1AD)$Ryesno,
+  "SaureusR" = phyloseq::sample_data(physeq_noS.ASV.timept1AD)$R,
+  "age" = phyloseq::sample_data(physeq_noS.ASV.timept1AD)$age_at_visit_in_years,
+  "subject" = phyloseq::sample_data(physeq_noS.ASV.timept1AD)$record_id, 
+  "timepoint" = phyloseq::sample_data(physeq_noS.ASV.timept1AD)$timepoint,
+  "sex" = phyloseq::sample_data(physeq_noS.ASV.timept1AD)$sex) 
+
+write_xlsx(adiv_AD_1st,paste0(outpath,"ADCohortAdiv.xlsx"))
+
+# Inverse Simpson Plot
+ggplot(adiv_AD_1st, aes(x = SaureusRyesno, y = InvSimpson))+
+  geom_boxplot(outlier.color = NA) +
+  geom_jitter(height = 0, width = .2, size = 2.5, shape = 21, aes(fill = SaureusRyesno)) +
+  scale_x_discrete(labels=c("-", "+")) +
+  labs(x = bquote(italic("S. aureus")~rectal~swab~detection), y = "Inverse Simpson Index") + 
+  geom_signif(comparisons = list(c("1", "0")), textsize = 4) +
+  scale_fill_manual(values=c("#606060","red"))+
+  theme_minimal()+
+  ylim(0,45)+
+  theme(axis.title = element_text(size = 12),
+    axis.line.x = element_line(colour = "black", linewidth = 0.5),
+    axis.line.y = element_line(colour = "black", linewidth = 0.5),
+    axis.text.y = element_text(size = 11, color = "black"),
+    axis.text.x = element_text(size = 18, color = "black"),
+    strip.text = element_text(size = 14),
+    legend.position = "none",
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank())
+
+ggsave(paste0(outpath,"Alpha Diversity/InverseSimpsonAD1stTimepointASV.svg"), width = 3, height = 4)
+
+#By Sex
+ggplot(adiv_AD_1st, aes(x = sex, y = InvSimpson))+
+  geom_boxplot(outlier.color = NA) +
+  geom_jitter(height = 0, width = .2, size = 2.5, shape = 21, aes(fill = sex)) +
+  labs(x = "Sex", y = "Inverse Simpson Index") + 
+  geom_signif(comparisons = list(c("M", "F")), textsize = 4) +
+  theme_minimal()+
+  ylim(0,45)+
+  theme(axis.title = element_text(size = 12),
+    axis.line.x = element_line(colour = "black", linewidth = 0.5),
+    axis.line.y = element_line(colour = "black", linewidth = 0.5),
+    axis.text.y = element_text(size = 11, color = "black"),
+    axis.text.x = element_text(size = 18, color = "black"),
+    strip.text = element_text(size = 14),
+    legend.position = "none",
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank())
+
+ggsave(paste0(outpath,"Alpha Diversity/InverseSimpsonAD1stTimepointASVsex.svg"), width = 3, height = 4)
+```
+
+#### Age
+
+```{r age}
+
+#Limiting to first timepoint samples
+adiv_AD_1st <- data.frame(
+  "Observed" = phyloseq::estimate_richness(physeq_noS.ASV.timept1AD, measures = "Observed"),
+  "Shannon" = phyloseq::estimate_richness(physeq_noS.ASV.timept1AD, measures = "Shannon"),
+  "Simpson" = phyloseq::estimate_richness(physeq_noS.ASV.timept1AD, measures = "Simpson"),
+  "InvSimpson" = phyloseq::estimate_richness(physeq_noS.ASV.timept1AD, measures = "InvSimpson")[, 1],
+  "Status" = phyloseq::sample_data(physeq_noS.ASV.timept1AD)$arm,
+  "SaureusRyesno" = phyloseq::sample_data(physeq_noS.ASV.timept1AD)$Ryesno,
+  "SaureusR" = phyloseq::sample_data(physeq_noS.ASV.timept1AD)$R,
+  "age" = phyloseq::sample_data(physeq_noS.ASV.timept1AD)$age_at_visit_in_years,
+  "subject" = phyloseq::sample_data(physeq_noS.ASV.timept1AD)$record_id, 
+  "timepoint" = phyloseq::sample_data(physeq_noS.ASV.timept1AD)$timepoint) 
+
+
+adiv_AD_1st %>%
+  ggplot(aes(x = age, y = InvSimpson))+
+  geom_point()+
+  geom_smooth(method = "lm")+
+  labs(x = "Age (years)", y = "Diversity Metric")+
+  ggtitle("Inverse Simpson")+
+  stat_poly_eq(
+    aes(label = paste(..eq.label.., ..adj.rr.label.., ..p.value.label.., sep = "~~~")),
+    formula = y ~ x, 
+    parse = TRUE, 
+    vstep = 0.08,
+    size = 4
+  ) +
+      theme(
+    axis.line.x = element_line(colour = "black", linewidth = 0.5),
+    axis.line.y = element_line(colour = "black", linewidth = 0.5),
+    axis.title = element_text(size = 14),
+    axis.text.y = element_text(size = 11, color = "black"),
+    axis.text.x = element_text(size = 11, color = "black"),
+    strip.text = element_text(size = 14))
+
+ggsave(paste0(outpath,"Alpha Diversity/InvSimpsonbyAge1sttimept.svg"))
+```
+
+## Beta Diversity
+
+### Genus
+
+```{r Bray Curtis genus definitions}
+
+#Bray Curtis
+ord_BrayCurtis_PCoA_genus <- phyloseq::ordinate(physeq_noS.genus.rel, "PCoA", "bray")
+
+breaks <- c(min(sample_data(physeq_noS.genus.rel)$age_at_visit_in_years), 5,10,  max(sample_data(physeq_noS.genus.rel)$age_at_visit_in_years))
+labels <- round(breaks, 1)
+
+p_genus <-phyloseq::plot_ordination(physeq_noS.genus.rel, ord_BrayCurtis_PCoA_genus , type="samples") 
+```
+
+#### Sex
+
+##### 1st timepoints
+
+```{r Bray Curtis genus 1st Timepoints sex}
+#Make everything relative
+physeq_rel = transform_sample_counts(physeq_noS.genus.timept1, function(x) x/sum(x))
+
+#Testing significance
+BrayCurtis<- distance(physeq_rel, method = "bray")
+sig <- adonis2(BrayCurtis ~ phyloseq::sample_data(physeq_rel)$sex)
+p_value <- sig[1,5]
+R_value <-round(sig[1,3], digits = 3)
+
+p2 <- p_genus 
+
+p2$data <- p2$data %>%
+  filter(timepoint == 1)
+
+p_save <- p2 + geom_point(size = 2, aes(color = sample_data(physeq_rel)$sex)) +
+  labs(title = "Bray-Curtis dissimilarity") +
+  scale_color_manual(name = "Sex", values = c("#FE3409", "#0745F7")) +
+  scale_fill_manual(name = "Sex", values = c("#FE3409", "#0745F7")) +
+  stat_ellipse(aes(color=sample_data(physeq_rel)$sex, fill=sample_data(physeq_rel)$sex),
+               geom = "polygon",
+               alpha=.3,
+               linewidth=.20, level=.9, type="t") +
+  theme_minimal()+
+  theme(axis.title = element_text(size = 12),
+    axis.line.x = element_line(colour = "black", linewidth = 0.5),
+    axis.line.y = element_line(colour = "black", linewidth = 0.5),
+    axis.text.y = element_text(size = 11, color = "black"),
+    axis.text.x = element_text(size = 11, color = "black"),
+    legend.justification = "top")+
+  coord_fixed(xlim = c(-0.8,0.7),ylim = c(-0.55,0.5), clip = "off") +
+  annotate("text", x = 0.6, y = 0.61, label = paste0("PERMANOVA: R^2 = ",R_value,", p = ",p_value))
+
+p_save
+
+ggsave(filename = paste0(outpath,"Beta Diversity/BrayCurtis_genus_sex_1stTimept.svg"), plot = egg::set_panel_size(p=p_save, width=unit(10, "cm"), height=unit(9, "cm")))
+```
+
+#### Age
+
+##### 1st timepoints
+
+```{r Bray Curtis Age genus 1st timepoints}
+#Make everyhing relative
+physeq_rel = transform_sample_counts(physeq_noS.genus.timept1, function(x) x/sum(x))
+
+#Testing significance
+BrayCurtis<- distance(physeq_rel, method = "bray")
+sig <- adonis2(BrayCurtis ~ phyloseq::sample_data(physeq_rel)$age_at_visit_in_years)
+p_value <- sig[1,5]
+R_value <-round(sig[1,3], digits = 3)
+
+p2 <- p_genus
+
+p2$data <- p2$data%>%
+  filter(timepoint ==1)
+
+p_save <- p2 +geom_point(data = p2$data, size = 2, aes(color = age_at_visit_in_years)) +
+  labs(title = "Bray-Curtis dissimilarity") +
+  scale_color_viridis_c(name = "Age (years)",
+                        direction=-1,
+                        breaks = breaks,
+                        labels = labels)+
+  theme(axis.title = element_text(size = 12),
+    axis.line.x = element_line(colour = "black", linewidth = 0.5),
+    axis.line.y = element_line(colour = "black", linewidth = 0.5),
+    axis.text.y = element_text(size = 11, color = "black"),
+    axis.text.x = element_text(size = 11, color = "black"))+
+  coord_fixed(xlim = c(-0.8,0.7),ylim = c(-0.55,0.5), clip = "off") +
+  annotate("text", x = 0.6, y = 0.61, label = paste0("PERMANOVA: R^2 = ",R_value,", p = ",p_value))
+
+p_save
+
+ggsave(filename = paste0(outpath,"Beta Diversity/BrayCurtis_genus_Age_1stTimepts.svg"), plot = egg::set_panel_size(p=p_save, width=unit(10, "cm"), height=unit(9, "cm")))
+```
+
+#### AD vs. HC
+
+##### 1st Timepoints
+
+```{r Bray Curtis genus 1st Timepoints AD vs HC}
+#Make everything relative
+physeq_rel = transform_sample_counts(physeq_noS.genus.timept1, function(x) x/sum(x))
+
+#Testing significance
+BrayCurtis<- distance(physeq_rel, method = "bray")
+sig <- adonis2(BrayCurtis ~ phyloseq::sample_data(physeq_rel)$arm)
+p_value <- sig[1,5]
+R_value <-round(sig[1,3], digits = 3)
+
+#Plot above looking AD vs. HC
+p2 <- p_genus 
+
+p2$data <- p2$data %>%
+  filter(timepoint == 1)
+
+p_save <- p2 + geom_point(size = 2, aes(color = sample_data(physeq_rel)$arm)) +
+  labs(title = "Bray-Curtis dissimilarity") +
+  scale_color_manual(name = "Disease Status", values = c("#FE3409", "#0745F7"), labels = c("Atopic Dermatitis", "Healthy Control")) +
+  scale_fill_manual(name = "Disease Status", values = c("#FE3409", "#0745F7"), labels = c("Atopic Dermatitis", "Healthy Control")) +
+  stat_ellipse(aes(color=sample_data(physeq_rel)$arm, fill=sample_data(physeq_rel)$arm),
+               geom = "polygon",
+               alpha=.3,
+               linewidth=.20, level=.9, type="t") +
+  theme_minimal()+
+  theme(axis.title = element_text(size = 12),
+    axis.line.x = element_line(colour = "black", linewidth = 0.5),
+    axis.line.y = element_line(colour = "black", linewidth = 0.5),
+    axis.text.y = element_text(size = 11, color = "black"),
+    axis.text.x = element_text(size = 11, color = "black"),
+    legend.justification = "top")+
+  coord_fixed(xlim = c(-0.8,0.7),ylim = c(-0.55,0.5), clip = "off") +
+  annotate("text", x = 0.6, y = 0.61, label = paste0("PERMANOVA: R^2 = ",R_value,", p = ",p_value))
+
+p_save
+
+ggsave(filename = paste0(outpath,"Beta Diversity/BrayCurtis_genus_ADvHC_1stTimept.svg"), plot = egg::set_panel_size(p=p_save, width=unit(10, "cm"), height=unit(9, "cm")))
+```
+
+#### S. aureus in the rectum vs. not
+
+##### 1st timepoints
+
+```{r Bray Curtis S aureus R vs not genus 1st timepts}
+#Make everything relative
+physeq_rel = transform_sample_counts(physeq_noS.genus.timept1, function(x) x/sum(x))
+
+#Testing significance
+BrayCurtis<- distance(physeq_rel, method = "bray")
+sig <- adonis2(BrayCurtis ~ phyloseq::sample_data(physeq_rel)$Ryesno)
+p_value <- sig[1,5]
+R_value <-round(sig[1,3], digits = 3)
+
+#Plot above looking at S. aureus
+p2 <- p_genus 
+
+p2$data <- p2$data %>%
+  filter(timepoint == 1)
+
+p_save <- p2 + geom_point(data = p2$data, size = 2, aes(color = Ryesno)) +
+  labs(title = "Bray-Curtis dissimilarity") +
+  scale_color_manual(name = bquote(italic("S. aureus") ~ "rectal detection"), values = c("darkgrey","darkred"), labels = c("Negative", "Positive")) +
+      scale_fill_manual(name = bquote(italic("S. aureus") ~ "rectal detection"), values = c("darkgrey","darkred"), labels = c("Negative", "Positive")) +
+  stat_ellipse(data = p2$data, aes(color=Ryesno, fill=Ryesno),
+               geom = "polygon",
+               alpha=.3,
+               linewidth=.20, level=.9, type="t") +
+  theme_minimal() +
+  theme(axis.title = element_text(size = 12),
+    axis.line.x = element_line(colour = "black", linewidth = 0.5),
+    axis.line.y = element_line(colour = "black", linewidth = 0.5),
+    axis.text.y = element_text(size = 11, color = "black"),
+    axis.text.x = element_text(size = 11, color = "black"),
+    legend.justification = "top")+
+    coord_fixed(xlim = c(-0.8,0.7),ylim = c(-0.55,0.5), clip = "off") +
+  annotate("text", x = 0.6, y = 0.61, label = paste0("PERMANOVA: R^2 = ",R_value,", p = ",p_value))
+
+p_save
+
+ggsave(filename = paste0(outpath,"Beta Diversity/BrayCurtis_genus_SaureusR_1stTimept.svg"), plot = egg::set_panel_size(p=p_save, width=unit(10, "cm"), height=unit(9, "cm")))
+```
+
+#### EASI
+
+##### AD 1st Timepoints
+
+```{r Bray Curtis EASI score genus AD 1stTimept}
+#Make everything relative
+physeq_rel = transform_sample_counts(physeq_noS.genus.timept1AD, function(x) x/sum(x))
+
+#Testing significance
+BrayCurtis<- distance(physeq_rel, method = "bray")
+sig <- adonis2(BrayCurtis ~ phyloseq::sample_data(physeq_rel)$easi_score)
+p_value <- sig[1,5]
+R_value <-round(sig[1,3], digits = 3)
+
+#Plot above
+p2 <- p_genus 
+
+p2$data <- p2$data %>%
+  filter(arm == "AD" & timepoint ==1)
+
+p_save <- p2 + geom_point(data = p2$data, size = 2, aes(color = easi_score)) +
+  labs(title = "Bray-Curtis dissimilarity") +
+  scale_color_viridis_c(name = "EASI score", option = "magma",direction = -1) +
+  theme(axis.line.x = element_line(colour = "black"),
+  axis.line.y = element_line(colour = "black"))+
+  coord_fixed(xlim = c(-0.8,0.7),ylim = c(-0.55,0.5), clip = "off") +
+  annotate("text", x = 0.6, y = 0.61, label = paste0("PERMANOVA: R^2 = ",R_value,", p = ",p_value))
+
+p_save
+
+ggsave(filename = paste0(outpath,"Beta Diversity/BrayCurtis_genus_EASI_AD1stTimept.svg"), plot = egg::set_panel_size(p=p_save, width=unit(10, "cm"), height=unit(9, "cm")))
+```
+
+#### Birth Mode
+
+##### 1st Timepoints
+
+```{r Bray Curtis birth mode genus 1st timepoints}
+#Make everything relative
+physeq_rel = transform_sample_counts(physeq_noS.genus.timept1, function(x) x/sum(x))
+
+#Testing significance
+BrayCurtis<- distance(physeq_rel, method = "bray")
+sig <- adonis2(BrayCurtis ~ phyloseq::sample_data(physeq_rel)$vaginal_csection)
+p_value <- sig[1,5]
+R_value <-round(sig[1,3], digits = 3)
+
+p2 <- p_genus 
+
+p2$data <- p2$data %>%
+  filter(timepoint ==1)
+
+p_save <- p2 + geom_point(data = p2$data, size = 2, aes(color = vaginal_csection)) +
+labs(title = "Bray-Curtis dissimilarity") +
+  theme(axis.line.x = element_line(colour = "black"),
+  axis.line.y = element_line(colour = "black"))+
+  scale_color_discrete(name = "Delivery mode",labels = c("Missing","C-section","Vaginal"))+
+  coord_fixed(xlim = c(-0.8,0.7),ylim = c(-0.55,0.5), clip = "off") +
+  annotate("text", x = 0.6, y = 0.61, label = paste0("PERMANOVA: R^2 = ",R_value,", p = ",p_value))
+
+p_save
+
+ggsave(filename = paste0(outpath,"Beta Diversity/BrayCurtis_genus_birthmode_1stTimept.svg"), plot = egg::set_panel_size(p=p_save, width=unit(10, "cm"), height=unit(9, "cm")))
+```

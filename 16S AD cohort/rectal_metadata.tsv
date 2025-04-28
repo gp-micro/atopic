@@ -1,0 +1,123 @@
+sample-id	subject_name	record_id	arm	timepoint	sex	race	age_at_visit_in_years	easi_score	dzseverity_easi	vIGA	dzseverity_vIGA	ppnrs	pmh_asthma	pmh_allergic_rhinitis	pmh_food_allergy	fhx_ad	fhx_asthma	fhx_allergic_rhinitis	vaginal_csection	breastfed	abx_since_lv	immuno_since_lv	toprx7days	bleachbath7days	moisturizer24hrs	bath24hrs	visit_date	lesionalswab	normalswab	L	N	R	U	A	B	Nyesno	Lyesno	Ryesno	Uyesno	Ayesno	Byesno
+#q2:types	categorical	categorical	categorical	numeric	categorical	categorical	numeric	numeric	categorical	numeric	categorical	numeric	categorical	categorical	categorical	categorical	categorical	categorical	categorical	categorical	categorical	categorical	categorical	categorical	categorical	categorical	categorical	categorical	categorical	numeric	numeric	numeric	numeric	numeric	numeric	categorical	categorical	categorical	categorical	categorical	categorical
+2AD1R	2AD1	2	AD	1	M		1.38	2.7	mild	1	almost_clear				Yes	Yes			vaginal				0	0	1	1	2021-08-12	right ankle	right antecubital fossa												
+3AD1R	3AD1	3	AD	1	M	White	1.25	18.7	moderate	3	moderate								vaginal	yes			0	0	1	1	2021-08-12	left wrist	left ventral arm	0	120	220	20			1	0	1	1		
+3AD2R	3AD2	3	AD	2	M	White	1.37	1.8	mild	1	almost_clear								vaginal	yes	1	0	1	0			2021-09-23	right antecubital fossa	not collected	0	0	0				0	0	0			
+3AD3R	3AD3	3	AD	3	M	White	2.23	8.2	moderate	2	mild								vaginal	yes	1	0	1	0	1	1	2022-08-03	Top of left hand	Upper back (there was active eczema on the abdomen)	40	160	360	0			1	1	1	0		
+3AD4R	3AD4	3	AD	4	M	White	2.59	1	almost_clear	1	almost_clear								vaginal	yes	1	0	1	0	1	1	2022-12-14	left wrist	middle of the back	0	0		0			0	0		0		
+4AD1R	4AD1	4	AD	1	M	Black	9.24	12	moderate	3	moderate	7		Yes				Yes					0	0	1	0	2021-09-08	right antecubital fossa	right thigh	63100	97000	57850	0			1	1	1	0		
+4AD2R	4AD2	4	AD	2	M	Black	9.43	2	mild	1	almost_clear	2		Yes				Yes									2021-11-17	right antercubital fossa	back	0	0	0	0			0	0	0	0		
+5AD1R	5AD1	5	AD	1	F	White,Other	0.57	18.5	moderate	3	moderate								csection				1	0		1	2021-09-22	right elbow	left lower leg	14600	340	140	980			1	1	1	1		
+5AD2R	5AD2	5	AD	2	F	White,Other	0.96	2.2	mild	1	almost_clear								csection		0	0	1	0	1	1	2022-02-09	Right dorsal hand	Abdomen	2980	140	0	140			1	1	0	1		
+6AD1R	6AD1	6	AD	1	M	Asian,Hispanic	2.95	4.5	mild	2	mild				Yes	Yes		Yes					1	0	1	1	2021-10-07	Left toes and right fingers	Right flank	4560	0	0	0			0	1	0	0		
+6AD2R	6AD2	6	AD	2	M	Asian,Hispanic	3.67	3.3	mild	2	mild				Yes	Yes		Yes			0	0	1	0	1	1	2022-06-30	right fingers	abdomen	0	0	0	0			0	0	0	0		
+7AD1R	7AD1	7	AD	1	M	Asian,Hispanic	1.05	6.6	mild	2	mild					Yes	Yes	Yes	vaginal				1	0	0	1	2021-10-13	Hands	Abdomen	0	0	20	0			0	0	1	0		
+8AD1R	8AD1	8	AD	1	M	Asian	2.46	19.4	moderate	3	moderate				Yes				vaginal				1	0	0	1	2021-10-13	Neck and Hands	Abdomen	215000	40	48500	1240			1	1	1	1		
+8AD2R	8AD2	8	AD	2	M	Asian	2.6	9	moderate	3	moderate				Yes				vaginal		0	0	1	1	1	0	2021-12-01	posterior neck	abdomen	7300	0	1280	120			0	1	1	1		
+8AD3R	8AD3	8	AD	3	M	Asian	3.13	1.1	mild	1	almost_clear				Yes				vaginal		0	0	0	0	1	1	2022-06-15	left hand	abdomen	20	0	15450	3440			0	1	1	1		
+9AD1R	9AD1	9	AD	1	M	Asian,White	2.37	12.9	moderate	2	mild		Yes		Yes	Yes			vaginal				0	0	0	0	2021-10-14			0	0	0	0			0	0	0	0		
+9AD2R	9AD2	9	AD	2	M	Asian,White	3.59	0.8	almost_clear	1	almost_clear		Yes		Yes	Yes			vaginal		0	0	0	0	1	0	2023-01-04	right antecubital fossa	right side lower back	0	0	0	0			0	0	0	0		
+10AD1R	10AD1	10	AD	1	M	Asian,Hispanic	9.35	11.4	moderate	2	mild	6					Yes	Yes					0	0	0	1	2021-10-28	Lower left calf	Left inner wrist	8700	39800	0	0			1	1	0	0		
+11AD1R	11AD1	11	AD	1	M	Black	2.98	18.9	moderate	3	moderate	7			Yes				vaginal				1	0	1	1	2021-11-18	right upper arm	abdomen	0	0	20	0			0	0	1	0		
+11AD2R	11AD2	11	AD	2	M	Black	4.25	3	mild	2	mild				Yes				vaginal		0	0	0	0	1	1	2023-02-22	left popliteal fossa	left side mid-back	0	20	0	0			1	0	0	0		
+12AD1R	12AD1	12	AD	1	F	Other	0.67	6.2	mild	1	almost_clear	4				Yes							1	0	1	0	2021-11-18	ears	hands	0	0	140	0			0	0	1	0		
+13AD1R	13AD1	13	AD	1	M	Prefer_not_to_say	2.48	13.2	moderate	3	moderate					Yes	Yes	Yes					0	0	1	1	2021-11-24	Left side of upper back	Top of left wrist	5880	60	160	20			1	1	1	1		
+14AD1R	14AD1	14	AD	1	M	White	1.98	6.5	mild	3	moderate				Yes								1	0	1	0	2021-12-01	Dorsal distal fingers	Chest	4020	0	520	20			0	1	1	1		
+15AD1R	15AD1	15	AD	1	F	Asian,Black	3.52	13.2	moderate	3	moderate	10	Yes		Yes	Yes	Yes	Yes	vaginal	no			1	0	1	1	2021-12-15	right antecubital fossa	middle back	0	0	40	0			0	0	1	0		
+15AD2R	15AD2	15	AD	2	F	Asian,Black	3.63	5.4	mild	3	moderate	8	Yes		Yes	Yes	Yes	Yes	vaginal	no	0	0	1	0	1	1	2022-01-26	Left hand	Left anterior forearm	0	1680	0	0			1	0	0	0		
+15AD3R	15AD3	15	AD	3	F	Asian,Black	4.17	7.8	moderate	3	moderate	8	Yes		Yes	Yes	Yes	Yes	vaginal	no	0	0	1	0	1	1	2022-08-10	Left inner wrist	Abdomen	180	2100	220	20			1	1	1	1		
+15AD4R	15AD4	15	AD	4	F	Asian,Black	4.44	7	mild	2	mild		Yes		Yes	Yes	Yes	Yes	vaginal	no	0	0	1	0	1	1	2022-11-17	left antecubital fossa	abdomen	0	660	20	0			1	0	1	0		
+16AD1R	16AD1	16	AD	1	M	Black	0.93	12.5	moderate	2	mild					Yes	Yes	Yes	csection				0	0	1	1	2022-01-19	posterior neck	left ventral forearm	0	0	0	0			0	0	0	0		
+17AD1R	17AD1	17	AD	1	M	White	6.77	1.5	mild	2	mild	0		Yes		Yes		Yes	csection				0	0	0	0	2022-01-26	Posterior left thigh	Anterior left forearm	0	0	0	0			0	0	0	0		
+18AD1R	18AD1	18	AD	1	M	White	10.16	2.8	mild	2	mild	0		Yes		Yes		Yes	csection				0	0	0	0	2022-01-26	Posterior left thigh	Anterior left forearm	0	10720	0	0			1	0	0	0		
+19AD1R	19AD1	19	AD	1	M	White	6.32	7.2	moderate	2	mild	4					Yes		vaginal				0	0	1	0	2022-01-27	Lower abdomen	Left hand	0	0	0	0			0	0	0	0		
+20AD1R	20AD1	20	AD	1	F	White	4.94	4.2	mild	2	mild	9				Yes			vaginal				1	0	0	0	2022-02-03	Left hand	Right anterior forearm	0	0	0	0			0	0	0	0		
+21AD1R	21AD1	21	AD	1	M	Asian	7.84	10.7	moderate	3	moderate	9	Yes	Yes	Yes				csection				1	0	1	1	2022-02-10	Buttocks	Left anterior forearm	33080	0	0	0			0	1	0	0		
+21AD2R	21AD2	21	AD	2	M	Asian	7.97	2	mild	1	almost_clear	8	Yes	Yes	Yes				csection		0	0	1	0	1	1	2022-03-30	Buttocks	Left anterior forearm	0	160	0	0			1	0	0	0		
+22AD1R	22AD1	22	AD	1	M	White	0.56	9.1	moderate	2	mild				Yes	Yes		Yes	vaginal				1	0	1	0	2022-02-24	left upper arm	stomach	0	98000	480	0			1	0	1	0		
+22AD2R	22AD2	22	AD	2	M	White	0.67	9.2	moderate	2	mild				Yes	Yes		Yes	vaginal		0	0	1	1	1	1	2022-04-07	Left thigh	Abdomen	0	0	0	0			0	0	0	0		
+22AD3R	22AD3	22	AD	3	M	White	0.94	4.1	mild	2	mild				Yes	Yes		Yes	vaginal		0	0	1	1	1	1	2022-07-14	Side of right upper thigh	Abdomen	0	20	0	140			1	0	0	1		
+22AD4R	22AD4	22	AD	4	M	White	1.19	2	mild	1	almost_clear				Yes	Yes		Yes	vaginal		0	0	1	1	1	0	2022-10-13	abdomen	right lower calf	0	0	0	0			0	0	0	0		
+22AD5R	22AD5	22	AD	5	M	White	1.53	0.8	almost_clear	1	almost_clear				Yes	Yes		Yes	vaginal		0	0	1	0	1	1	2023-02-15	left upper buttock	left bicep	0	0	0	0			0	0	0	0		
+23AD1R	23AD1	23	AD	1	M	White	7.66																0	0	0	0	2022-03-03														
+24HC1R	24HC1	24	HC	1	F	Prefer_not_to_say	0.94										Yes		vaginal				0	0	0	0	2022-03-03	n/a	abdomen		0	0	0			0		0	0		
+25HC1R	25HC1	25	HC	1	M	White	3.04								Yes				vaginal				0	0	1	1	2022-03-16	n/a	Abdomen (a), right ventral forearm (b)		0	0		0	0	0		0		0	0
+26AD1R	26AD1	26	AD	1	M	Prefer_not_to_say	3.22	22.5	severe	3	moderate					Yes	Yes		csection				1	0	0	1	2022-03-16	Right dorsal hand	Abdomen	39500	20	940	0			1	1	1	0		
+26AD2R	26AD2	26	AD	2	M	Prefer_not_to_say	3.45	30.2	severe	3	moderate					Yes	Yes		csection		0	1	1	0	1	1	2022-06-08	Right dorsal hand	Right cheek	34467	60	100	480			1	1	1	1		
+26AD3R	26AD3	26	AD	3	M	Prefer_not_to_say	3.74	6.2	mild	2	mild					Yes	Yes		csection		0	1	0	0	0	1	2022-09-22	right antecubital fossa	abdomen	0	0	0	0			0	0	0	0		
+26AD4R	26AD4	26	AD	4	M	Prefer_not_to_say	4.01	6.4	mild	2	mild					Yes	Yes		csection		0	1	1	0	1	1	2022-12-29	left dorsal wrist	chest	0	0	0	0			0	0	0	0		
+27AD1R	27AD1	27	AD	1	M	White	0.64	27	severe	4	severe				Yes			Yes	vaginal				1	0	1	1	2022-03-30	Left cheek	Abdomen	7950	4060	920	80			1	1	1	1		
+28AD1R	28AD1	28	AD	1	F	Prefer_not_to_say	0.82	9	moderate	3	moderate					Yes		Yes	vaginal				1	0	1	1	2022-04-06	Right cheek	Abdomen	20	0	0	0			0	1	0	0		
+29AD1R	29AD1	29	AD	1	M	White	4.41	12.6	moderate	3	moderate	6		Yes	Yes			Yes	vaginal				1	0	1	1	2022-04-20	Right AC fossa	Abdomen	0	0	940	20			0	0	1	1		
+29AD2R	29AD2	29	AD	2	M	White	4.6	1.5	mild	2	mild			Yes	Yes			Yes	vaginal		0	0	1	0	1	1	2022-06-29	left popliteal fossa	abdomen	0	0	0	0			0	0	0	0		
+30AD1R	30AD1	30	AD	1	M	Asian	1.82	20.4	moderate	3	moderate	5			Yes	Yes			vaginal				1	0	1	1	2022-04-20	Left knee	anterior right forearm	0	0	100	0			0	0	1	0		
+30AD2R	30AD2	30	AD	2	M	Asian	2.01	7.2	moderate	3	moderate				Yes	Yes			vaginal		0	0	1	0	1	1	2022-06-29	Right upper leg	Abdomen	0	20	40	0			1	0	1	0		
+30AD3R	30AD3	30	AD	3	M	Asian	2.2	6	mild	2	mild				Yes	Yes			vaginal		0	0	1	0	1	1	2022-09-07	right upper leg	right antecubital fossa	20	1380	40	140			1	1	1	1		
+30AD4R	30AD4	30	AD	4	M	Asian	2.45	5.4	mild	2	mild				Yes	Yes			vaginal		0	0	1	0	1	1	2022-12-07	right wrist	abdomen	0	0	0	0			0	0	0	0		
+31AD1R	31AD1	31	AD	1	M	Black,Hispanic	3.55	48.8	severe						Yes		Yes	Yes	vaginal				1	0	1	1	2022-05-12	Bilateral antecubital fossa	none												
+32AD1R	32AD1	32	AD	1	M	Asian	0.58	0.4	almost_clear	1	almost_clear								vaginal				1	0	1	0	2022-06-23	Right posterior cheek	Abdomen	0	0	0	0			0	0	0	0		
+33AD1R	33AD1	33	AD	1	M	Asian	0.58	0.3	almost_clear	1	almost_clear								vaginal				1	0	1	0	2022-06-23	lower back	abdomen	0	0	180	0			0	0	1	0		
+34HC1R	34HC1	34	HC	1	M	White	5.33																0	0	0	0	2022-06-23	A) abdomen	B) Left antecubital fossa		0	40		0	0	0		1		0	0
+35AD1R	35AD1	35	AD	1	M	White	11.12	3.1	mild	2	mild			Yes		Yes	Yes		vaginal				1	0	0	0	2022-06-29	right antecubital fossa	right abdomen	0	49233	0	0			1	0	0	0		
+35AD2R	35AD2	35	AD	2	M	White	11.38	0	clear	0	clear			Yes		Yes	Yes		vaginal		0	0	0	0	1	1	2022-10-05	right antecubital fossa	right hand	0	260	0	0			1	0	0	0		
+35AD3R	35AD3	35	AD	3	M	White	12.07	2.4	mild	2	mild			Yes		Yes	Yes		vaginal		0	0	0	0	1	1	2023-06-14	right antecubital fossa	abdomen	160	3360	0	0			1	1	0	0		
+36AD1R	36AD1	36	AD	1	F	Asian	0.85	4.2	mild	3	moderate				Yes	Yes			vaginal				1	0	1	1	2022-07-13	Chin	Back	0	0	0	0			0	0	0	0		
+37AD1R	37AD1	37	AD	1	F	Other	6.11	3	mild	1	almost_clear								csection				1	0	1	0	2022-07-13	Back of legs	Abdomen	0	0	6160	0			0	0	1	0		
+38AD1R	38AD1	38	AD	1	M	White,Hispanic	0.61	5.2	mild	3	moderate	4			Yes			Yes	vaginal				1	0	1	1	2022-07-14	Left cheek	Chest	0	0	0	200			0	0	0	1		
+39AD1R	39AD1	39	AD	1	F	Asian,White,Hispanic	1.09	3.9	mild	2	mild								vaginal	yes			0	0	0	0	2022-08-03	L ankle/foot	Abdomen	0	0	0	0			0	0	0	0		
+39AD2R	39AD2	39	AD	2	F	Asian,White,Hispanic	1.74	0	clear	1	almost_clear								vaginal	yes	0	0	0	0	1	1	2023-03-29	L ankle/foot	abdomen	0	0	0	0			0	0	0	0		
+40HC1R	40HC1	40	HC	1	F	Black	8.36												csection				0	0	0	0	2022-08-29	Abdomen (A)	Antecubital fossa - right (B)		173000	0		0	40	1		0		0	1
+41AD1R	41AD1	41	AD	1	M	Other	10.58	2.5	mild	2	mild							Yes	vaginal				1	0	0	1	2022-09-01	Popliteal fossa - right	Abdomen - right side	0	540	0	0			1	0	0	0		
+42AD1R	42AD1	42	AD	1	M	White	3.58	8.1	moderate	3	moderate			Yes			Yes	Yes	vaginal				1	0	1	1	2022-09-14	right popliteal fossa	upper abdomen	0	0	80	0			0	0	1	0		
+43AD1R	43AD1	43	AD	1	F	Hispanic	3.79	7.5	moderate	3	moderate					Yes		Yes	vaginal	yes			0	0	1	1	2022-09-28	right lateral elbow	abdomen	0	0	6750	0			0	0	1	0		
+43AD2R	43AD2	43	AD	2	F	Hispanic	4	0.9	almost_clear	1	almost_clear					Yes		Yes	vaginal	yes	1	0	1	0	1	1	2022-12-15	right lateral elbow	abdomen	0	0	0	0			0	0	0	0		
+44AD1R	44AD1	44	AD	1	F	Asian	9.61	5.3	mild	2	mild				Yes	Yes			vaginal				1	0	1	1	2022-10-05	right antecubital fossa	abdomen	0	20	0	0			1	0	0	0		
+45AD1R	45AD1	45	AD	1	F	Black,White	4.7	15	moderate	3	moderate				Yes	Yes	Yes	Yes	vaginal				1	0	1	1	2022-10-12	left antecubital fossa	abdomen	4380	60	1860	60			1	1	1	1		
+45AD2R	45AD2	45	AD	2	F	Black,White	4.92	17.8	moderate	3	moderate				Yes	Yes	Yes	Yes	vaginal		1	0	1	0	1	1	2022-12-29	dorsal right arm	left cheek	2880	0	0	180			0	1	0	1		
+46HC1R	46HC1	46	HC	1	F	White	5.49											Yes	vaginal				0	0	0	1	2022-10-19	(a) abdomen	(b) antecubital fossa		60	0		0	0	1		0		0	0
+47HC1R	47HC1	47	HC	1	F	White	5.39												vaginal	yes			0	0	0	1	2022-10-20	(a) abdomen	(b) antecubital fossa		60	0		0	0	1		0		0	0
+48AD1R	48AD1	48	AD	1	F	White	4.05	7.2	moderate	3	moderate								csection	no			1	0	0	1	2022-10-26	right upper thigh	top of left foot	0	18600	20	0			1	0	1	0		
+49HC1R	49HC1	49	HC	1	M	Hispanic	9.6																0	0	0	1	2022-11-11	(a) abdomen	(b) left antecubital fossa		200	0		0	0	1		0		0	0
+50HC1R	50HC1	50	HC	1	F	White	2.38											Yes	vaginal	yes			0	0	1	1	2022-11-17	a) right anterior lower forearm	b) abdomen		0	0		0	0	0		0		0	0
+51HC1R	51HC1	51	HC	1	F	Asian	0.65												vaginal	yes			0	0	0	0	2022-12-02	a) abdomen	b) right antecubital fossa		0	0		0	0	0		0		0	0
+52HC1R	52HC1	52	HC	1	M	White	1.09								Yes		Yes		vaginal	yes			0	0	1	1	2022-12-07	right antecubital fossa	abdomen		0	0		0	0	0		0		0	0
+53AD1R	53AD1	53	AD	1	M	Asian,White	3.93	8.5	moderate	3	moderate				Yes				vaginal	yes			1	0	1	1	2022-12-28	right dorsal ankle	abdomen	0	0	0	0			0	0	0	0		
+53AD2R	53AD2	53	AD	2	M	Asian,White	4.07	6.8	mild	2	mild				Yes				vaginal	yes	0	0	1	0	1	0	2023-02-16	left knee	abdomen	0	0	20	0			0	0	1	0		
+53AD3R	53AD3	53	AD	3	M	Asian,White	4.14	3.1	mild	2	mild				Yes				vaginal	yes	0	0	1	0	1	1	2023-03-15	left knee	abdomen	0	1040	440	0			1	0	1	0		
+53AD4R	53AD4	53	AD	4	M	Asian,White	4.47	5.2	mild	2	mild				Yes				vaginal	yes	0	0	1	0	1	1	2023-07-12	left knee	right cheek	8540	160	20	0			1	1	1	0		
+54AD1R	54AD1	54	AD	1	M	Asian	1	3	mild	2	mild					Yes	Yes	Yes	vaginal	yes			1	0	1	1	2023-01-12	right cheek	abdomen	280	0	60	0			0	1	1	0		
+54AD2R	54AD2	54	AD	2	M	Asian	1.28	2.8	mild	2	mild					Yes	Yes	Yes	vaginal	yes	0	0	1	0	1	1	2023-04-26	right arm	abdomen	0	0	20	0			0	0	1	0		
+55HC1R	55HC1	55	HC	1	F	White	1.17								Yes				vaginal	yes			0	0	1	0	2023-01-18	a) abdomen	b) antecubital fossa		0	0		0	0	0		0		0	0
+56AD1R	56AD1	56	AD	1	M	White	0.95	3	mild	2	mild							Yes	csection	yes			0	0	1	0	2023-02-01	left lower leg	abdomen	0	0	0	0			0	0	0	0		
+57HC1R	57HC1	57	HC	1	M	White	8.96											Yes	csection	yes			0	0	1	1	2023-02-08	a) abdomen	b) antecubital fossa		0	0		0	0	0		0		0	0
+58AD1R	58AD1	58	AD	1	M	Asian,White	0.95	3.6	mild	2	mild				Yes	Yes	Yes		vaginal	yes			1	0	1	0	2023-02-09	right popliteal fossae	abdomen	0	0	20	0			0	0	1	0		
+58AD2R	58AD2	58	AD	2	M	Asian,White	1.16	1.6	mild	2	mild				Yes	Yes	Yes		vaginal	yes	0	0	1	0	1	1	2023-04-27	right antecubital fossa	abdomen	0	0	0	0			0	0	0	0		
+59AD1R	59AD1	59	AD	1	F	White	1.13	3.1	mild	2	mild				Yes				csection	no			1	0	1	1	2023-02-15	left arm	middle of the back	0	0	0	0			0	0	0	0		
+59AD2R	59AD2	59	AD	2	F	White	1.57	1.8	mild	2	mild				Yes				csection	no	0	0	1	0	1	1	2023-07-26	chin	abdomen	0	0	0	0			0	0	0	0		
+59AD3R	59AD3	59	AD	3	F	White	2.02	0.9	almost_clear	1	almost_clear				Yes				csection	no	0	0	1	0	1	1	2024-01-03	upper back	right forearm												
+60AD1R	60AD1	60	AD	1	M	White,Other	10.05	19.4	moderate	3	moderate			Yes	Yes			Yes	csection	yes			1	0	1	1	2023-02-15	back of the neck/head	left lower cheek	40	320	0	0			1	1	0	0		
+61AD1R	61AD1	61	AD	1	M	White	10.13	8.8	moderate	3	moderate					Yes		Yes	csection	yes			0	0	0	0	2023-02-16	right antecubital fossa	abdomen	0	0	0	0			0	0	0	0		
+61AD2R	61AD2	61	AD	2	M	White	10.31	2.9	mild	2	mild					Yes		Yes	csection	yes	1	0	1	0	0	0	2023-04-20	right antecubital fossa	abdomen	0	0	0	0			0	0	0	0		
+62AD1R	62AD1	62	AD	1	F	White	13.62	28.8	severe	4	severe			Yes	Yes				vaginal	yes			0	0	1	1	2023-03-23	right antecubital fossa	left ankle	0	0	20	0			0	0	1	0		
+63HC1R	63HC1	63	HC	1	F	White	4.67										Yes	Yes	vaginal	yes			0	0	1	1	2023-04-11	a) abdomen	b) antecubital fossa		0	0		0	0	0		0		0	0
+64AD1R	64AD1	64	AD	1	F	Asian,White	2.55	7.8	moderate	3	moderate					Yes	Yes		csection	yes			0	0	1	0	2023-04-12	left popliteal fossa	abdomen	10920	0	80	0			0	1	1	0		
+65HC1R	65HC1	65	HC	1	M	White	0.96												vaginal	yes			0	0	1	1	2023-04-12	a) abdomen	b) antecubital fossa		0	0		0	0	0		0		0	0
+65HC2R	65HC2	65	HC	2	M	White	1.67												vaginal	yes	1	0	0	0	0	0	2023-12-28	a) abdomen	b) right antecubital fossa												
+66AD1R	66AD1	66	AD	1	F	White	7.17	21.6	severe	3	moderate			Yes	Yes	Yes	Yes	Yes	vaginal	yes			1	0	1	0	2023-04-19	left antecubital fossa	center of abdomen	620	20	89000	220			1	1	1	1		
+66AD2R	66AD2	66	AD	2	F	White	7.34	4.6	mild	2	mild			Yes	Yes	Yes	Yes	Yes	vaginal	yes	0	1	0	0	1	0	2023-06-21	left antecubital fossa	center of abdomen	0	200	0	0			1	0	0	0		
+67HC1R	67HC1	67	HC	1	F	White	1.51											Yes	vaginal	yes			0	0	0	0	2023-04-26	a) abdomen	b) antecubital fossa		0	0		0	0	0		0		0	0
+68AD1R	68AD1	68	AD	1	F	Asian,White	4.1	33.5	severe	4	severe				Yes	Yes	Yes	Yes	vaginal	yes			1	0	1	0	2023-04-26	left antecubital fossa	upper back	0	420	0	0			1	0	0	0		
+68AD2R	68AD2	68	AD	2	F	Asian,White	4.38	34.2	severe	4	severe				Yes	Yes	Yes	Yes	vaginal	yes	0	0	1	0	1	1	2023-08-03	right wrist	upper back	40	0	0	20			0	1	0	1		
+69AD1R	69AD1	69	AD	1	M	Asian	2.97	11.4	moderate	3	moderate		Yes		Yes	Yes	Yes	Yes	csection	yes			1	0	1	0	2023-05-31	left wrist	abdomen	140	0	0	0			0	1	0	0		
+70AD1R	70AD1	70	AD	1	M	White	4.02	2.7	mild	2	mild			Yes		Yes	Yes		csection	yes			0	0	0	0	2023-06-07	left antecubital fossa	abdomen	0	0	0	0			0	0	0	0		
+70AD2R	70AD2	70	AD	2	M	White	4.18	0.9	almost_clear	1	almost_clear			Yes		Yes	Yes		csection	yes	0	0	0	0	1	1	2023-08-03	right forearm	abdomen	0	0	0	0			0	0	0	0		
+71HC1R	71HC1	71	HC	1	M	White	5.76												vaginal	yes			0	0	0	0	2023-06-07	a) abdomen	b) antecubital fossa		0	0		0	0	0		0		0	0
+72AD1R	72AD1	72	AD	1	M	Asian,White	3.6	7.9	moderate	3	moderate		Yes	Yes		Yes		Yes	vaginal	yes			1	0	0	1	2023-08-31	left forearm	abdomen	0	0	0	0			0	0	0	0		
+72AD2R	72AD2	72	AD	2	M	Asian,White	3.73	0.9	almost_clear	1	almost_clear		Yes	Yes		Yes		Yes	vaginal	yes	0	0	0	0	1	1	2023-10-18	right wrist	abdomen	0	0	0	0			0	0	0	0		
+73HC1R	73HC1	73	HC	1	F	White	0.68									Yes	Yes	Yes	vaginal	yes			0	0	1	1	2023-09-13	a) abdomen	b) left antecubital fossa		0	0		0	0	0		0		0	0
+74HC1R	74HC1	74	HC	1	F	White	0.9									Yes			csection	yes			0	0	0	1	2023-09-27	a) abdomen	b) left antecubital fossa		0	0		0	0	0		0		0	0
+75HC1R	75HC1	75	HC	1	F	White	1.4											Yes	vaginal	yes			0	0	1	1	2023-10-12	a) abdomen	b) antecubital fossa		0	0		0	0	0		0		0	0
+76HC1R	76HC1	76	HC	1	F	White	0.89											Yes	vaginal	yes			0	0	1	0	2023-10-19	a) abdomen	b) right antecubital fossa		0	0		0	0	0		0		0	0
+77AD1R	77AD1	77	AD	1	F	Asian	3.92	2.4	mild	2	mild								vaginal	yes			1	0	1	1	2023-11-02	left popliteal fossa	abdomen	7700	0	2100	0			0	1	1	0		
+78HC1R	78HC1	78	HC	1	F	Asian	0.84									Yes			vaginal	yes			0	0	1	1	2023-11-29	a) abdomen	b) left antecubital fossa		0	160		0	0	0		1		0	0
+79AD1R	79AD1	79	AD	1	M	White	0.59	2.7	mild	2	mild				Yes				csection	yes			0	0	1	0	2023-12-20	left forearm	abdomen												

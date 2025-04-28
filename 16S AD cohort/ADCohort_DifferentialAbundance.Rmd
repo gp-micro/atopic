@@ -1,0 +1,274 @@
+---
+title: "Rectal Swab Differential Abundance"
+author: "Theodora Karagounis"
+date: "2025-03-08"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Libraries
+
+```{r libraries}
+library(tidyverse)
+library(readxl)
+library(writexl)
+library(ggtext)
+library(phyloseq)
+library(qiime2R)
+library(ggsignif)
+library(lmerTest)
+library(ggrepel)
+```
+
+# Outpath
+
+```{r outpath}
+outpath <- "Output/"
+```
+
+# Data Import
+
+```{r data import}
+
+physeq_wS<-qza_to_phyloseq(
+    features = 'QIIME_Processed/sample-filtered-table.qza',
+    taxonomy= 'QIIME_Processed/taxonomy-sample-filtered.qza',
+    metadata ='rectal_metadata.tsv')
+
+#Remove Mitochondria, and Chloroplast reads
+physeq_wS<- subset_taxa(physeq_wS,  Genus != "Mitochondria" & 
+                                    Genus != "Chloroplast" )
+
+physeq_wS
+```
+
+# Data Clean Up
+
+```{r data clean up}
+
+# Defining NA labels
+taxtable_absabund <- data.frame(tax_table(physeq_wS))
+taxtable_absabund <- taxtable_absabund %>%
+  dplyr::mutate(Order = ifelse(is.na(Order), paste0(Class, "_unspecified"), Order)) %>%
+  dplyr::mutate(Family = ifelse(is.na(Family), paste0(Order, "_unspecified"), Family)) %>%
+  dplyr::mutate(Genus = ifelse(is.na(Genus), paste0(Family, "_unspecified"), Genus)) %>%
+  dplyr::mutate(Species = ifelse(is.na(Species), paste0(Genus, "_unspecified"), Species)) %>%
+  dplyr::mutate(Species = ifelse(Genus == "Salinibacter", "Salinibacter_ruber", Species))
+
+phyloseq::tax_table(physeq_wS) <- as.matrix(taxtable_absabund)
+```
+
+## ASV - normalization
+
+```{r data normalization by ASV}
+#Copy to new phyloseq
+physeq_working <- physeq_wS
+
+#Make everything relative 
+physeq_working = transform_sample_counts(physeq_working, function(x) x/sum(x))
+
+#Add pseudocount
+#Find min amount in otu_table
+#Mask zero amounts and find min non-zero value
+min_value <- data.frame(otu_table(physeq_working)) %>%
+  mutate(across(everything(), ~ ifelse(. == 0, Inf, .)))%>%
+  min(.)
+#pseudocount will be half the minimum value
+pseudocount <- min_value/2
+#add pseudocount to otu table
+pseudocount_otu_table <- t(t(otu_table(physeq_working))+pseudocount)
+#replace otu table
+otu_table(physeq_working) <- pseudocount_otu_table
+
+# Then normalize to S. ruber
+# Extract Salinibacter sample counts
+ps_salinibacter <- subset_taxa(physeq_working, Genus == "Salinibacter")
+# For each sample, sum number of reads attributed to Salinibacter
+Salini_Reads <- sample_sums(ps_salinibacter)
+# Generate size factor for normalization of each sample which equals the number of Salinibacter reads per sample divided by the input amount
+Salini_SizeFactor <- Salini_Reads /105000
+# Create normalized OTU table
+normalized_otu_table <- t(t(otu_table(physeq_working))/Salini_SizeFactor)
+# Replace OTU table with normalized OTU table
+otu_table(physeq_working) <- normalized_otu_table
+
+# Get normalized pseudocount for each sample
+normalized_pseudocount <- pseudocount/Salini_SizeFactor
+
+# Create list of taxa 
+taxa_list<- as.data.frame(otu_table(physeq_working)) %>%
+  sweep(2, normalized_pseudocount, "/") %>%
+  mutate(across(everything(), ~ ifelse(.x > 1, 1, 0))) %>%
+  mutate(taxa_totals = rowSums(.)) %>%
+  mutate(taxa_percent = taxa_totals / nsamples(physeq_working))%>%
+  select(taxa_percent)
+  
+# Keep taxa in over 10 percent of samples
+taxa_to_keep <- taxa_list %>%
+  dplyr::filter(.[[1]] > 0.1) %>%
+  rownames(.)
+
+# Prune taxa based on list
+physeq_working <- prune_taxa(taxa_to_keep, physeq_working)
+
+physeq_norm.ASV <- physeq_working
+```
+
+# Differential Abundance
+
+## S. aureus Rectum
+
+### Linear Mixed Effects Model
+
+#### ASV
+
+```{r, differentially abundant ASV by amount S. aureus in rectum lmer}
+
+#Remove Salinibacter reads
+physeq_working<- subset_taxa(physeq_norm.ASV,  Genus != "Salinibacter")
+
+# Extract abundance table
+abund_table <- data.frame(log10(t(otu_table(physeq_working))))
+
+# Extract taxa table
+tax_df <- data.frame(tax_table(physeq_working))
+tax_df$Row_names <- row.names(tax_df)
+
+# Save ASV names
+taxanames <- data.frame(colnames(abund_table))
+
+# Make key for ASV names and taxa_x to make it easier to refer to them
+taxanames <- taxanames %>%
+  mutate(taxa_name = paste0("taxa_",rownames(taxanames)))
+
+# Add easier name to column names
+colnames(abund_table) <- taxanames$taxa_name
+
+# Make mega table
+sample_data_df <- data.frame(sample_data(physeq_wS))
+all_variables <- merge(abund_table, sample_data_df, by=0)
+
+# List to store the results of lmer models for each taxa
+results_list <- list()
+
+# Iterate through each taxa
+for (i in 1:ncol(abund_table)) {
+  taxa <- paste0("taxa_", i)
+  
+  # Extract relevant columns for the current taxa
+  df_taxa <- all_variables %>% select(Row.names, {{taxa}}, age_at_visit_in_years, R, record_id)
+  df_taxa <- df_taxa %>% column_to_rownames('Row.names')
+  df_taxa <- df_taxa %>% mutate(R = log10(R+0.1))
+  
+  # Construct the formula 
+  formula <- as.formula(paste(taxa, "~ 1 + R + age_at_visit_in_years + (1|record_id)"))
+  
+ # Fit lmer model for the current taxa
+  lmer_model <- lmerTest::lmer(formula, data = df_taxa)
+  
+  # Store the summary of the lmer model
+  results_list[[taxa]] <- summary(lmer_model)
+}
+
+# Initialize empty vectors to store p-values
+
+summary_p_values <- tibble()
+summary_coefficients <- tibble()
+
+# Iterate through each taxa
+for (i in 1:ncol(abund_table)) {
+  taxa <- paste0("taxa_", i)
+  
+  # Extract p-values from the summary of the model
+  p_value_summary <- data.frame(t(results_list[[taxa]]$coefficients[, "Pr(>|t|)"]))
+  
+  coefficients_summary <- data.frame(t(results_list[[taxa]]$coefficients[, "Estimate"]))
+  
+  p_value_summary <- p_value_summary %>%
+    mutate(taxa_name = taxa) %>%
+    dplyr::rename(Intercept = X.Intercept.)
+  
+  coefficients_summary <- coefficients_summary %>%
+    mutate(taxa_name = taxa) %>%
+    dplyr::rename(Intercept = X.Intercept.)
+  
+  summary_p_values <- rbind(summary_p_values, p_value_summary)
+  
+  summary_coefficients <- rbind(summary_coefficients, coefficients_summary)
+}
+
+
+# Adjust p values
+
+ summary_p_values <-  summary_p_values %>%
+   dplyr::mutate(adjusted_p_R = p.adjust(R, method = "BH")) %>%
+   dplyr::mutate(adjusted_p_age_at_visit_in_years = p.adjust(age_at_visit_in_years, method = "BH"))
+ 
+taxa_to_plot <- tibble()
+ 
+# Save significant taxa
+taxa_to_plot <- summary_p_values %>%
+  filter(adjusted_p_R < 0.05) %>%
+  left_join(., taxanames, by = "taxa_name")
+ 
+taxa_to_plot <-  taxa_to_plot%>%
+  dplyr::rename(ASV = ncol(taxa_to_plot)) %>%
+  dplyr::mutate(ASV = gsub("^X", "", ASV)) %>%
+  left_join(., tax_df, by = c("ASV" = "Row_names"))
+
+taxa_to_plot
+```
+
+##### Plotting significant taxa
+
+```{r, plot ASVs correlated with S. aureus density}
+
+# Volcano plot
+volcano_plot <- summary_p_values %>%
+  left_join(., taxanames, by = "taxa_name")
+
+volcano_plot  <- volcano_plot  %>%
+  dplyr::rename(ASV = ncol(volcano_plot))%>% 
+  mutate(ASV = gsub("^X", "", ASV)) %>%
+  left_join(., tax_df, by = c("ASV" = "Row_names"))
+
+summary_coefficients <- summary_coefficients %>%
+  dplyr::rename(rectal_coefficient = R)
+
+volcano_plot <- left_join(volcano_plot, select(summary_coefficients, rectal_coefficient, taxa_name), by = "taxa_name")
+
+# add a column of NAs
+volcano_plot$diff <- "NO"
+# if log2Foldchange > 0.6 and pvalue < 0.05, set as "UP" 
+volcano_plot$diff[volcano_plot$adjusted_p_R< 0.05] <- "UP"
+# if log2Foldchange < -0.6 and pvalue < 0.05, set as "DOWN"
+volcano_plot$diff[volcano_plot$adjusted_p_R< 0.05] <- "DOWN"
+
+# Create a new column to label significant bacteria 
+volcano_plot$labelS <- NA
+volcano_plot$labelS[volcano_plot$diff != "NO"] <- volcano_plot$Genus[volcano_plot$diff != "NO"]
+
+volcano_p <- ggplot(volcano_plot, aes(x = rectal_coefficient, y = -log10(adjusted_p_R), color = diff, label = labelS))+
+  geom_point(size = 2)+
+  theme_minimal()+
+  geom_text_repel()+
+  labs(x = expression(italic("β")[1]~"("~italic(S.~aureus)~"rectal density)"),
+     y = expression(-log[10]~"["~italic("q")~"]"))+
+  scale_color_manual(values=c("#FF0000","black")) +
+  geom_hline(yintercept=-log10(0.05), col="black", linetype = "dashed")+
+  theme_minimal()+
+  theme(text=element_text(family="Helvetica")) +
+  theme(axis.title = element_text(size = 12),
+    axis.line.x = element_line(colour = "black", linewidth = 0.5),
+    axis.line.y = element_line(colour = "black", linewidth = 0.5),
+    axis.text.y = element_text(size = 11, color = "black"),
+    axis.text.x = element_text(size = 11, color = "black"),
+    legend.position = "none")
+
+volcano_p
+
+ggplot2::ggsave(paste0(outpath,"RectalSwabDiffAbundSaureusASV.svg"),width = 5, height = 4)
+```
