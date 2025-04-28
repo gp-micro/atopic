@@ -1,0 +1,88 @@
+---
+title: "Alpha diversity comparison"
+author: "Theodora Karagounis"
+date: "2025-03-31"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Libraries
+
+```{r libraries}
+library(tidyverse)
+library(readxl)
+library(writexl)
+library(ggsignif)
+```
+
+## Outpath
+
+```{r outpath}
+outpath <- 'Output/'
+```
+
+## Data Import
+
+```{r data import}
+
+adiv_ches_raw <- read_xlsx("CHESadiv.xlsx")
+
+adiv_rectal_ad_raw <- read_xlsx("ADCohortAdiv.xlsx")
+```
+
+## Data Clean Up
+
+```{r data clean up}
+
+adiv_ches <- adiv_ches_raw %>%
+  mutate(cohort = "NYUCHES")%>%
+  mutate(Status = ifelse(Status == "case", "AD", "HC"))
+
+adiv_rectal_ad <- adiv_rectal_ad_raw %>%
+  mutate(cohort = "NYUAD", 
+         age_month = age*12)%>%
+  rename(Saureusyesno = SaureusRyesno)%>%
+  select(-age)
+
+adiv <- bind_rows(adiv_ches, adiv_rectal_ad)
+
+```
+
+## Plot
+
+```{r plot}
+
+myscaler <- function(x, from, to) {
+  high=36
+  low=0.5
+  ifelse(x<low,0,ifelse(x>high,1,(x-low)/(high-low)))
+}
+
+
+adiv%>%
+  ggplot(aes(x = cohort, y = InvSimpson, color = age_month))+
+  geom_boxplot(outlier.color = NA) +
+  geom_jitter(height = 0, width = .2, size = 1) +
+  scale_color_viridis_c(name = "Age (month)", 
+                       rescaler=myscaler,
+                       limits = c(0, 36),
+                       breaks = c(0.5, 12, 24, 36), 
+                       oob = scales::squish,
+                       option = "turbo") +
+  ylab("Alpha Diveristy (inverse Simpson index)")+
+  xlab("Cohort")+
+  geom_signif(comparisons = list(c("NYUCHES", "NYUAD")), textsize = 4) +
+  theme_minimal()+
+    theme(
+    axis.line.x = element_line(colour = "black", linewidth = 0.5),
+    axis.line.y = element_line(colour = "black", linewidth = 0.5),
+    axis.title = element_text(size = 14),
+    axis.text.y = element_text(size = 11, color = "black"),
+    axis.text.x = element_text(size = 11, color = "black"),
+    strip.text = element_text(size = 14))
+
+ggsave(paste0(outpath,"InvSimpsonbyCohort.svg"),width = 4.5, height = 4)
+```
