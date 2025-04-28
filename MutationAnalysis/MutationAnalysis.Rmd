@@ -1,0 +1,561 @@
+---
+title: "GeneAnalysis"
+author: "Theodora Karagounis"
+date: "2024-08-05"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load Libraries
+
+```{r load libraries}
+library(tidyverse)
+library(readxl)
+library(openxlsx)
+library(stringr)
+library(purrr)
+library(viridis)
+library(dplyr)
+library(ggsignif)
+library(ggnewscale)
+```
+
+## Define Outpath
+
+```{r outpath}
+
+outpath <- 'Output/'
+```
+
+## Import Data
+
+```{r data import}
+
+# Specify the folder path where Excel files are located
+folder_path <-"Update6_FRP3757"
+
+# List all excel files in folder
+tsv_files <- list.files(path = folder_path, pattern = ".tsv", full.names = TRUE)
+
+# Import gene library from aureowiki (https://aureowiki.med.uni-greifswald.de/Downloads)
+gene_library_2017 <- read_xlsx("GeneSpecificInformation_USA300_FPR3757_2017.xlsx")
+gene_library_2013 <- read_xlsx("GeneSpecificInformation_USA300_FPR3757_2013.xlsx")
+
+Colony_Counts_Raw <- read_excel("Colony_Counts.xlsx")
+EASI_Scores_Raw <- read_excel("EASI_Scores.xlsx")
+```
+
+## Functions
+
+```{r defining functions}
+
+extract_timept_site <-  function(column_names) {
+  # Use stringr::str_extract to extract timept and body site
+  extracted_info <- paste0(
+    str_extract(column_names, "\\d+(?=[NLU|R])"),
+    str_extract(column_names, "[NLU|R]"))
+  
+  return(extracted_info)
+  }
+
+extract_body_site <- function(colnames) {
+  str_extract(colnames, "[NLRU]")
+  }
+
+# Function to check the enough isolates
+check_conditions <- function(data) {
+  # Ensure at least 2 isolates present
+  if (nrow(data)>1) 
+    {return(TRUE)} 
+  else 
+    {return(FALSE)}
+  }
+```
+
+## Metadata
+
+```{r metadata}
+#Clean up EASI Score Raw Data
+EASI_Scores <- EASI_Scores_Raw %>%
+  mutate(EASI_Score = coalesce(easi_score_over7, easi_score_under7_v2)) %>%
+  select(record_id, redcap_repeat_instance, EASI_Score) %>%
+  filter(!is.na(redcap_repeat_instance)) %>%
+  mutate(Severity = case_when(
+    EASI_Score == 0 ~ "clear",
+    EASI_Score < 1 ~ "almost_clear",
+    EASI_Score < 7 ~ "mild",
+    EASI_Score < 21 ~ "moderate",
+    EASI_Score < 50 ~ "severe",
+    TRUE ~ "very severe" 
+  ))
+
+Colony_Counts_Raw$CFU_mL <- as.numeric(Colony_Counts_Raw$CFU_mL)
+
+#Make Colony Counts Data easier to manipulate
+Colony_Counts<- Colony_Counts_Raw %>%
+  separate(Sample, 
+           into = c("subject","ADvsHC","timepoint","site"),
+           sep = "(?<=\\d)(?=[A-Z])|(?<=[A-Z])(?=\\d)") %>%
+  filter(!is.na(CFU_mL))
+
+Colony_Counts$subject <- as.numeric(Colony_Counts$subject)
+Colony_Counts$timepoint <- as.numeric(Colony_Counts$timepoint)
+
+EASI_Scores$redcap_repeat_instance <- as.numeric(EASI_Scores$redcap_repeat_instance)
+
+#Exclude subjects who received antibiotics
+subj_exclude <- c("3AD2","3AD3","3AD4","26AD2","26AD3","26AD4","29AD2","43AD2","45AD2","61AD2","66AD2","11AD2")
+
+metadata <- full_join(Colony_Counts, EASI_Scores, by = c('subject' = 'record_id', 'timepoint' = 'redcap_repeat_instance'))
+
+metadata_wider <- metadata %>%
+  pivot_wider(names_from = site, values_from = CFU_mL)%>%
+  mutate(subject_timept = paste0(subject,ADvsHC,timepoint))%>%
+  filter(!subject_timept %in% subj_exclude)
+```
+
+## Finding SNPs
+
+```{r counting shared SNPs}
+
+#Initiate dfs to store info
+allinfo_sum <- tibble()
+SNPs_info_all <- tibble()
+enough_isolates <- tibble()
+unique_N_sum <- tibble()
+unique_L_sum <- tibble()
+unique_R_sum <- tibble()
+unique_NL_sum <- tibble() 
+unique_NR_sum <- tibble() 
+unique_LR_sum <- tibble()
+
+#Loop through excel files
+for (input_file in tsv_files) {
+  
+# Storing sample name
+input_file_base <- tools::file_path_sans_ext(basename(input_file))
+  
+# Load data from Excel sheet (make sure the sheet name is correct)
+df <- data.frame(read.delim(input_file))
+
+nucs <- df %>%
+  select(POS, 6:ncol(df))
+
+#Add info on site and timept 
+nucs_site_time <- nucs %>%
+  rowwise()%>%
+  mutate(nucs_present = list(unique(c_across(starts_with("X"))))) %>%
+  ungroup() %>%
+  pivot_longer(cols = starts_with("X"), names_to = "source", values_to = "nucleotides")%>%
+  mutate(timept_site = extract_timept_site(source)) %>%
+  dplyr::filter(!grepl("NANA", timept_site, fixed = TRUE)) %>%
+  mutate(timept = str_extract(timept_site, "\\d+"),
+         site = str_extract(timept_site, "[NLU|R]")) %>%
+  filter(site !="U") #Filter out unaffected site
+
+timepoints <- unique(nucs_site_time$timept)
+
+for(time in timepoints){
+  
+check_count <- nucs_site_time %>%
+  select(source, timept, site)%>%
+  dplyr::distinct(source, timept, site)%>%
+  filter(timept == time)
+
+subject_check <- check_count %>%
+  mutate(corrected_sample_name = str_replace_all(source, "24C", "24HC"),
+  subject_time = str_extract(corrected_sample_name, "\\d{1,2}[A-Z]{2}\\d"))%>%
+  dplyr::distinct(subject_time, timept)%>%
+  filter(timept == time)%>%
+  pull(subject_time)
+ 
+# Apply the check_conditions function here
+if (!check_conditions(check_count) | subject_check %in% subj_exclude) {
+  next  # Skip this iteration if the condition is not met
+}
+
+#Note sites with unique nucleotide present
+unique_site <- nucs_site_time %>%
+  filter(timept == time)%>%
+  distinct(POS, site, nucleotides) %>%
+  group_by(POS, nucleotides)%>%
+  mutate(unique_site_count = n_distinct(site)) %>%
+  mutate(result_site = case_when(
+    unique_site_count == 1 ~ as.character(site),
+    unique_site_count == 2 ~ paste(unique(site), collapse = ""),
+    TRUE ~ as.character(NA))) %>%
+  select(-unique_site_count) %>%
+  ungroup() %>%
+  distinct(POS, result_site, nucleotides) %>%
+  dplyr::rename(nucs_site = nucleotides) %>%
+  group_by(POS)%>%
+  summarise(
+    result_site = paste(result_site, collapse = "; "),
+    nucs_site = paste(nucs_site, collapse = "; "))
+
+#Update ANNOTATIONS column
+gene_info <- df %>% 
+  select(1:5) %>%
+  mutate(row_num = row_number(.))
+
+gene_info_gene_encoding<- gene_info %>%
+  filter(str_starts(ANNOTATIONS, "Allele")) %>%
+    separate_wider_delim(ANNOTATIONS, delim = ",", names = c("allele_effect", "SAUSA", "NUCLEOTIDE_CHANGE","PROTEIN_CHANGE"), too_few = "align_start", too_many = "merge") %>%
+    separate_wider_delim(allele_effect, delim = " ", names = c("name", "ALLELE", "EFFECT"), too_few = "align_start")%>% 
+    select(-name) %>%
+    mutate(ALLELE = gsub(":", "", ALLELE))
+
+#Parse out SAUSA tags
+gene_info_gene_encoding<- gene_info_gene_encoding %>%
+    mutate(tags = str_extract_all(SAUSA, "SAUSA300_RS\\d+")) %>%
+    mutate(unique_tags = map(tags, ~ unique(.x)), 
+      tag1 = map_chr(unique_tags, ~ if(length(.x) >= 1) .x[[1]] else NA_character_),
+      tag2 = map_chr(unique_tags, ~ if(length(.x) >= 2) .x[[2]] else NA_character_)) %>%
+    select(tag1, tag2, CHROM, POS, REF, ALT, EFFECT, everything(), -tags, -unique_tags,-SAUSA)
+
+gene_info_intergenic<- gene_info %>%
+  filter(!str_starts(ANNOTATIONS, "Allele")) %>%
+  mutate(tags = str_extract_all(ANNOTATIONS, "SAUSA300_RS\\d+")) %>%
+  mutate(unique_tags = map(tags, ~ unique(.x)), 
+    tag1 = map_chr(unique_tags, ~ if(length(.x) >= 1) .x[[1]] else NA_character_),
+    tag2 = map_chr(unique_tags, ~ if(length(.x) >= 2) .x[[2]] else NA_character_)) %>%
+  mutate(EFFECT = paste0("intergenic ",ANNOTATIONS))%>%
+  select(tag1, tag2, CHROM, POS, REF, ALT, EFFECT, everything(), -tags, -unique_tags, -ANNOTATIONS)
+
+gene_info <- dplyr::bind_rows(gene_info_gene_encoding, gene_info_intergenic)%>%
+  arrange(row_num)
+  
+#Combine SAUSA tags with gene info
+gene_info <- gene_info %>% 
+  left_join(select(gene_library_2017, `locus tag`,`old locus tag`, `pan gene symbol`,synonym, product, description, `TIGRFAM Meta Role`, `TIGRFAM Main Role`,`TIGRFAM Sub Role`,`TIGRFAM function`,TIGRFAM,`PFAM Accession`,`PFAM description`,`interaction partners`), by = c("tag1" = "locus tag")) %>%
+  select(tag1, tag2, EFFECT,`old locus tag`, `pan gene symbol`,synonym, product, description, `TIGRFAM Meta Role`, `TIGRFAM Main Role`,`TIGRFAM Sub Role`,`TIGRFAM function`,TIGRFAM,`PFAM Accession`,`PFAM description`,`interaction partners`, everything())%>%
+  left_join(select(gene_library_2013, `new locus tag`,operon, regulator), by = c("tag1" = "new locus tag"))
+ 
+#Combine all info
+all_info_working <- left_join(gene_info, unique_site, by = "POS")
+
+all_SNPs_working <- left_join(nucs_site_time, gene_info, by = "POS")%>%
+  filter(timept == time)%>%
+  mutate(cluster = input_file_base)%>%
+  select(cluster, POS, source, nucleotides, timept_site, timept, site, tag1, tag2, EFFECT, `old locus tag`, `pan gene symbol`,REF, ALT, ALLELE, NUCLEOTIDE_CHANGE, PROTEIN_CHANGE, operon)
+
+all_info <- all_info_working %>%
+  separate_rows(result_site, nucs_site, sep = "; ") %>%
+  mutate(result_site = ifelse(result_site == "LN","NL", result_site),
+    result_site = ifelse(result_site == "RN","NR", result_site),
+    result_site = ifelse(result_site == "LR","RL", result_site),
+    result_site = ifelse(result_site =="NA", NA, result_site),
+    cluster = input_file_base,
+    corrected_sample_name = str_replace_all(cluster, "24C", "24HC"),
+    arm = str_extract(corrected_sample_name, "AD|HC"),
+    subject = str_extract(corrected_sample_name, "\\d+[A-Z]+"),
+    timept = time)%>%
+  select(-corrected_sample_name)%>%
+  select(cluster,subject, arm,timept,everything())
+
+allinfo_sum <- rbind(allinfo_sum, all_info)
+
+SNPs_info_all <- rbind(SNPs_info_all, all_SNPs_working)
+
+}}
+
+
+all_snps <- allinfo_sum %>%
+  filter(nucs_site!=REF)%>%
+  filter(EFFECT != "synonymous_variant")%>%
+  group_by(arm)%>%
+  mutate(total_clusters = n_distinct(cluster))%>%
+  ungroup()%>%
+  group_by(arm)%>%
+  mutate(total_subjects = n_distinct(subject))%>%
+  ungroup()%>%
+  group_by(tag1, tag2, arm)%>%
+  mutate(number_cluster_per_tag = n_distinct(cluster),
+         number_subject_per_tag = n_distinct(subject))%>%
+  ungroup()%>%
+  mutate(gene_pos = str_extract(tag1, "\\d{5}$") %>% as.numeric())%>%
+  arrange(gene_pos) %>%
+  mutate(operon_short = str_extract(operon, "SAUSA300_\\d{4}"))%>%
+  group_by(cluster, tag1, tag2)%>%
+  mutate(parallel_snps_in_cluster = n_distinct(PROTEIN_CHANGE))%>%
+  ungroup()%>%
+  group_by(subject, tag1, tag2)%>%
+  mutate(parallel_snps_in_subject = n_distinct(PROTEIN_CHANGE))%>%
+  ungroup()
+
+all_snps_table <- all_snps %>%
+  filter(is.na(tag2))%>%
+  select(-tag2,-cluster,-synonym,description,-`TIGRFAM Meta Role`,-`TIGRFAM Main Role`,`TIGRFAM Sub Role`,-`TIGRFAM function`,-`TIGRFAM Sub Role`,-TIGRFAM,-`PFAM Accession`,-`PFAM description`,-`interaction partners`,-POS,-row_num,-regulator,-total_clusters,-number_cluster_per_tag,-gene_pos,-operon_short,-parallel_snps_in_cluster)%>%
+  mutate(`pan gene symbol` = ifelse(`pan gene symbol`== "-", NA, `pan gene symbol`))%>%
+  filter(!is.na(`pan gene symbol`))%>%
+  group_by(operon, arm)%>%
+  mutate(parallel_snps_in_subject_operon = n_distinct(PROTEIN_CHANGE, subject))%>%
+  ungroup()%>%
+  mutate(parallel_snps_in_subject_operon = ifelse(operon == "no polycistronic organisation predicted", NA, parallel_snps_in_subject_operon))
+
+write.xlsx(all_snps_table,paste0(outpath,"mutation_info.xlsx"))
+```
+
+## Gene-encoding regions
+
+#### By Subject
+
+```{r}
+gene_plotting <- all_snps%>%
+  filter(parallel_snps_in_subject > 1) %>%
+  filter(is.na(tag2))%>%
+  group_by(tag1, arm)%>%
+  mutate(subject_w_parallel_ev = n_distinct(subject))%>%
+  mutate(percent_subject_w_parallel_ev = subject_w_parallel_ev/total_subjects)%>%
+  group_by(total_subjects, number_cluster_per_tag, tag1, tag2,`old locus tag`,`pan gene symbol`,`TIGRFAM Meta Role`, subject_w_parallel_ev, percent_subject_w_parallel_ev,arm)%>%
+  dplyr::summarise()%>%
+  mutate(`pan gene symbol` = ifelse(`pan gene symbol`== "-", NA, `pan gene symbol`))
+
+n_distinct(gene_plotting$tag1)
+n_distinct(gene_plotting$`pan gene symbol`)
+
+full_combinations <- gene_plotting %>%
+  ungroup()%>%
+  distinct(`pan gene symbol`, arm) %>%
+  complete(`pan gene symbol`, arm, fill = list(percent_subject_w_parallel_ev = 0))
+
+gene_plotting_2 <-gene_plotting %>%
+  right_join(full_combinations, by = c('pan gene symbol','arm'))
+
+gene_plotting_2%>%
+  filter(!is.na(`pan gene symbol`))%>%
+  ggplot(aes(y =`pan gene symbol`, x = arm,fill = percent_subject_w_parallel_ev))+
+  geom_tile(color = "black")+
+  scale_fill_stepsn("Subjects (proportion)",
+                    colors=c('#fee5d9','#feb8a4','#ff8363','#ff3333','darkred'),
+                    limits = c(0, 0.7),
+                    breaks = c(0,  0.05, 0.10, 0.15, 0.2, 0.7),
+                    values = c(0,  0.05, 0.10, 0.15, 0.2, 0.21, 0.7),
+                    na.value = "white",
+                    oob = scales::squish)+
+  ylab("Gene")+
+  scale_y_discrete(limits = rev,expand = c(0,0))+
+  scale_x_discrete(expand = c(0,0))+
+  xlab("Health Status")+
+  theme(panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        panel.border = element_rect(colour = "black", size = 0.5, fill = NA),
+        axis.title.y = element_text(color = "black",size = "14"),
+        axis.title.x = element_text(color = "black",size = "14"),
+        axis.text.x = element_text(color = "black", size = 10, angle = 45, vjust = 0.7),
+        plot.title = element_text(hjust = 0.5))
+
+ggsave(paste0(outpath,"parallel_evolution_ingenes_HCandAD_heatmap_bysubject.svg"),width = 3.5, height = 4)
+```
+
+## Operons
+
+#### By Subject
+
+```{r by subject}
+
+#Included chaperone genes as seperate group
+chaperone_genes <- c("dnaJ","dnaK","grpE","hrcA","ctsR","mcsA","mcsB","clpC","clpB","amaP","groL","groES","hslU","clpX","clpX","clpY","clpP")
+
+chaperone_SNPs <- all_snps %>%
+  filter(is.na(tag2))%>%
+  filter(`pan gene symbol` %in% chaperone_genes)
+
+n_distinct(chaperone_SNPs$subject)
+
+operon_plotting<- all_snps
+  
+operon_plotting <- rbind(operon_plotting,
+      all_snps %>% 
+        filter(`pan gene symbol` %in% chaperone_genes)%>% 
+        mutate(operon = "chaperon_SNP",
+               operon_short = "stress response genes"))
+  
+operon_plotting_bysubject <- operon_plotting%>%  
+  filter(is.na(tag2))%>%
+  group_by(operon, arm)%>%
+  mutate(parallel_snps_in_subject_operon = n_distinct(PROTEIN_CHANGE, subject))%>%
+  mutate(parallel_snps_in_subject_operon_percent = parallel_snps_in_subject_operon/ total_subjects)%>%
+  ungroup()%>%
+  filter(operon != "no polycistronic organisation predicted")
+
+HC_operons <- operon_plotting_bysubject %>%
+  filter(arm == "HC" & parallel_snps_in_subject_operon > 1)%>%
+  pull(operon)
+
+operon_plotting_ADsubject <- operon_plotting_bysubject%>%
+  filter(!operon %in% HC_operons)%>%
+  group_by(total_subjects, operon, operon_short, parallel_snps_in_subject_operon, parallel_snps_in_subject_operon_percent, arm)%>%
+  dplyr::summarise()%>%
+  left_join(select(gene_library_2017, `old locus tag`, `pan gene symbol`), by = c("operon_short" = "old locus tag"))%>%
+  mutate(`pan gene symbol` = ifelse(operon_short == "stress response genes", "stress response genes", `pan gene symbol`))%>%
+  mutate(`pan gene symbol` = ifelse(`pan gene symbol`== "-", NA, `pan gene symbol`))%>%
+  filter(!is.na(`pan gene symbol`))
+
+operon_plotting_ADsubject%>%
+  filter(arm != "HC")%>%
+  ggplot(aes(y = reorder(`pan gene symbol`, desc(parallel_snps_in_subject_operon)), x = arm))+
+  geom_tile(data = operon_plotting_ADsubject%>%filter(arm == "AD" & !is.na(`pan gene symbol`) & parallel_snps_in_subject_operon > 2), aes (fill = parallel_snps_in_subject_operon_percent), color = "black")+
+     scale_fill_stepsn("Subjects (proportion)",
+                    colors=c('#fee5d9','#feb8a4','#ff3333','darkred'),
+                    limits = c(0,0.4), 
+                    breaks = c(0,0.1,0.2,0.3,0.4))+
+  ylab("Gene")+
+  scale_y_discrete(limits = rev,expand = c(0,0))+
+  scale_x_discrete(expand = c(0,0))+
+  theme(panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        panel.border = element_rect(colour = "black", size = 0.5, fill = NA),
+        axis.title.y = element_text(color = "black",size = "14"),
+        axis.title.x = element_blank(),
+        axis.text.x = element_text(color = "black", size = 10, angle = 45, vjust = 0.7),
+        plot.title = element_text(hjust = 0.5))
+
+ggsave(paste0(outpath,"parallel_evolution_inoperons_AD_subject_heatmap.svg"),width = 4, height = 4)
+```
+
+### Within site info
+
+#### By Subject
+
+```{r plotting all gene-encoding reginos including site info}
+
+operon_plotting_with_site <- all_snps%>%
+  filter(arm == "AD") %>%
+  filter(is.na(tag2))%>%
+  group_by(operon)%>%
+  mutate(parallel_snps_in_subject_operon = n_distinct(PROTEIN_CHANGE, subject))%>%
+  ungroup()%>%
+  mutate(result_site = ifelse(is.na(result_site),"NLR",result_site))%>%
+  separate_rows(result_site, sep = "(?<=.)(?=.)")%>%
+  group_by(result_site)%>%
+  mutate(total_subject_per_site = n_distinct(subject))%>%
+  ungroup()%>%
+  filter(operon_short %in% operon_plotting_ADsubject$operon_short)%>%
+  filter(parallel_snps_in_subject_operon > 2)%>%
+  group_by(operon_short, result_site)%>%
+  mutate(number_subject_per_site = n_distinct(subject))%>%
+  ungroup()
+
+operon_plotting_with_site  <- operon_plotting_with_site %>%
+  distinct(operon_short, number_subject_per_site, result_site)%>%
+  left_join(select(gene_library_2017, `old locus tag`, `pan gene symbol`), by = c("operon_short" = "old locus tag"))%>%
+  mutate(`pan gene symbol` = ifelse(`pan gene symbol`== "-", NA, `pan gene symbol`))%>%
+  filter(!is.na(`pan gene symbol`))%>%
+  pivot_wider(names_from = result_site, values_from = number_subject_per_site)%>%
+  replace_na(list(N = 0, R = 0, L = 0)) %>%  # Replace NAs with zeros
+  mutate(total = rowSums(select(.,"N","L","R"), na.rm = TRUE))%>%
+  mutate(
+    R_norm = R / total,
+    N_norm = N / total,
+    L_norm = L / total) %>%
+  select(-total, -N, -L, -R) %>%
+  arrange(R_norm)%>%
+  mutate(`pan gene symbol` = factor(`pan gene symbol`, levels = unique(`pan gene symbol`)))%>%
+  pivot_longer(cols = R_norm:L_norm,names_to = "site", values_to = "percent")
+               
+operon_plotting_with_site %>%
+  ggplot(aes(x = `pan gene symbol`, y = percent, fill = site))+
+  geom_bar(position = "stack", stat = "identity")+
+  scale_fill_manual(labels = c("skin lesion", "nares","rectum"), values = c("red","darkblue","#F7D501"), name = "Site")+
+  xlab("First gene in operon")+
+  ylab("Subjects (proportion)")+
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line.x = element_line(colour = "black", linewidth = 0.5),
+        axis.line.y = element_line(colour = "black", linewidth = 0.5),
+        axis.title.y = element_text(color = "black",size = "14"),
+        axis.title.x = element_text(color = "black",size = "14"),
+        axis.text.x = element_text(color = "black", size = 10, angle = 90, vjust = 0.7),
+        plot.title = element_text(hjust = 0.5))
+
+ggsave(paste0(outpath,"FORFIGURE_operons_with_snps_by_site_by_subject.svg"),width = 7, height = 5)
+```
+
+### agr mutant
+
+```{r agr mutant}
+
+agr_mutants <- all_snps %>%
+  filter(arm == "AD")%>%
+  filter(`pan gene symbol` == "agrA" | `pan gene symbol` == "agrC")%>%
+  mutate(subject = as.numeric(str_extract(cluster, "\\d+(?=AD)")))%>%
+  mutate(timept = as.numeric(timept))%>%
+  left_join(metadata_wider, by = c("subject" = "subject", "timept" = "timepoint"))%>%
+  select(-ADvsHC)%>%
+  mutate(subject_timept = paste0(subject,"AD",timept))
+
+agr_mutant_subjects_timepoint <- agr_mutants$subject_timept
+
+agr_subjects <- dplyr::distinct(agr_mutants, subject) %>% dplyr::pull(subject)
+
+colonized_subjects <- metadata_wider %>%
+  filter(ADvsHC =="AD")%>%
+  filter(subject < 70)%>% #Data not available on agr status for these subjects
+  filter(subject != 44)%>% #No isolates sequenced from this subject
+  filter(L != 0 | N != 0 | R !=0)%>%
+  mutate(subject_timept = paste0(subject,"AD",timepoint)) %>%
+  mutate(agr_mutant_subject_timepoint = ifelse(subject_timept %in% agr_mutant_subjects_timepoint,"yes","no"))%>%
+  mutate(agr_mutant_subject = ifelse(subject%in% agr_subjects,"yes","no"))%>%
+  mutate(R_yes_no = ifelse(R == 0, "no","yes"))%>%
+  mutate(multiple_sites_colonized = if_else((N > 0) + (L> 0) + (R > 0) >= 2, "yes", "no"))
+
+agr_pos <- colonized_subjects%>% filter(agr_mutant_subject_timepoint == "yes")
+agr_neg <- colonized_subjects%>% filter(agr_mutant_subject_timepoint == "no")
+
+colonized_subjects %>% ggplot(aes(x = agr_mutant_subject_timepoint, y = EASI_Score))+
+  geom_boxplot(width = 0.5, outliers = FALSE)+
+  geom_jitter(width = 0.1, size = 3, shape = 21, aes(fill = agr_mutant_subject_timepoint))+
+  scale_fill_manual(values = c("#9C9C9C","#de8a00"))+
+  geom_signif(
+    comparisons = list(c("yes","no")),
+    textsize = 4,
+    size = 0.7) +
+  ylab("Atopic Dermatitis Severity (EASI)")+
+  xlab(italic("agr")~mutant~isolate~present)+
+  scale_y_continuous(breaks = seq(0,40,10), limits = c(0,40))+
+  theme_minimal()+
+  theme(legend.position = "none",
+        axis.line.x = element_line(colour = "black", linewidth = 0.5),
+        axis.line.y = element_line(colour = "black", linewidth = 0.5),
+        axis.title.y = element_text(color = "black",size = "14"),
+        axis.title.x = element_text(color = "black",size = "14"),
+        axis.text.x = element_text(color = "black", size = 10, vjust = 0.7), 
+        axis.text.y = element_text(color = "black", size = 10),
+        axis.ticks.x = element_line(size = 0.5),
+        axis.ticks.y= element_line(size = 0.5),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())
+
+ggsave(paste0(outpath,"agrvsEASI.svg"),width = 3, height = 4)
+
+colonized_subjects %>% ggplot(aes(x = agr_mutant_subject_timepoint, y = log10(R+1)))+
+geom_hline(yintercept = log10(20+1), linetype = "dashed")+
+ ggbeeswarm::geom_beeswarm(size = 3, shape = 21, aes(fill = agr_mutant_subject_timepoint))+
+  scale_fill_manual(values = c("#9C9C9C","#de8a00"))+
+  geom_signif(
+    comparisons = list(c("yes","no")),
+    textsize = 4,
+    size = 0.7) +
+   scale_y_continuous(breaks = 0:12,  labels = scales::label_math(10^.x))+
+  ylab("Rectal S. aureus Density (log10[CFU/mL + 1])")+
+  xlab(italic("agr")~mutant~isolate~present)+
+  theme_minimal()+
+  theme(legend.position = "none",
+        axis.line.x = element_line(colour = "black", linewidth = 0.5),
+        axis.line.y = element_line(colour = "black", linewidth = 0.5),
+        axis.title.y = element_text(color = "black",size = "14"),
+        axis.title.x = element_text(color = "black",size = "14"),
+        axis.text.x = element_text(color = "black", size = 10, vjust = 0.7), 
+        axis.text.y = element_text(color = "black", size = 10),
+        axis.ticks.x = element_line(size = 0.5),
+        axis.ticks.y= element_line(size = 0.5),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())
+
+ggsave(paste0(outpath,"FORFIGUREagrvslog10R.svg"),width = 3, height = 4)
+```
