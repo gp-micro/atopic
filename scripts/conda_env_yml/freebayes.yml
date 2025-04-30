@@ -1,0 +1,6 @@
+name: freebayes
+channels:
+    - conda-forge
+    - bioconda
+dependencies:
+    - freebayes=1.3.2

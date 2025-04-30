@@ -1,0 +1,8 @@
+name: rstuff
+channels:
+    - conda-forge
+    - r
+    - bioconda
+dependencies:
+    - r-tidyverse
+    - bioconductor-rtracklayer
