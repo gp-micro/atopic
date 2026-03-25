@@ -41,7 +41,7 @@ The following should be a TSV file with three columns:
 - Global path to reference FASTA file for that cluster
 - Name of reference
 
-Supply that TSV file's path here:
+Supply that TSV file's path in this part of the README:
 
     cluster_refseq_tsv_file="misc/2024-09-12-refseq-cluster-refs-selected-by-ANI.tsv"
 
