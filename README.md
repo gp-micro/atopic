@@ -26,4 +26,26 @@ All further software will be loaded automatically via the conda environments spe
 - R (version 4.3.2)
 - R package rtracklayer (version 1.62.0)
 
+**Instructions**
+
+Edit `Snakefile` to fill in the following paths
+
+    scratch_dir="/your/scratch/dir/here"
+    #Path to a tab-delimited file with 3 columns: sample identifier, forward read, reverse read
+    #These are fastp-cleaned forward and reverse reads to be specific
+    sample2fastp_tsv="path/to/sample2fastp_Update6.tsv"
+
+The following should be a TSV file with three columns:
+
+- Cluster name
+- Global path to reference FASTA file for that cluster
+- Name of reference
+
+    cluster_refseq_tsv_file="misc/2024-09-12-refseq-cluster-refs-selected-by-ANI.tsv"
+
+The following command will then generate the joint VCF files:
+
+    CACHE=/path/to/your/conda/cache/dir
+    snakemake --cores 32 --software-deployment-method conda --conda-prefix $CACHE --conda-frontend mamba process_vcf_refseq_all
+
 
