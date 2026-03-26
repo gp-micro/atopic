@@ -26,6 +26,10 @@ This includes code for generating the panels of Figure 3 of the manuscript. Thes
 - [`16S_CHES_cohort/NYUCHES_R1_processing.md`](16S_CHES_cohort/NYUCHES_R1_processing.md) 
 - [`16S_CHES_cohort/NYUCHES_R2_processing.md`](16S_CHES_cohort/NYUCHES_R2_processing.md) 
 
+The process of merging these runs is described in [`16S_CHES_cohort/MergingCHESRuns.md`](16S_CHES_cohort/MergingCHESRuns.md).
+
+The resulting Qiime2 artifacts are used as input to the further analysis steps detailed in `16S_CHES_cohort/NYUCHES_16SAnalysis.Rmd`. That RMarkdown is meant to but run in RStudio (tested on on version 2024.12.0+467 with R version 4.4.2).
+
 ## Joint variant calling pipeline
 
 **Software requirements**
