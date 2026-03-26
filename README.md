@@ -5,6 +5,7 @@ Code related to the paper "The gut-skin axis of Staphylococcus aureus colonizati
 This document is divided into sections dedicated to separate analyses done for the paper:
 
 - [AD cohort 16S analysis](#ad-cohort-16s-analysis)
+- [CHES cohort 16S analysis](#ches-cohort-16s-analysis)
 - [Joint variant calling pipeline](#joint-variant-calling-pipeline)
 
 ## AD cohort 16S analysis
@@ -17,6 +18,13 @@ Further 16S analysis of the AD cohort data is detailed in following RMarkdown fi
     16S_AD_cohort/ADCohort_DifferentialAbundance.Rmd
 
 This includes code for generating the panels of Figure 3 of the manuscript. These RMarkdown files are meant to be run form RStudio (tested on version 2024.12.0+467 with R version 4.4.2).
+
+## CHES cohort 16S analysis
+
+16S amplicon sequencing was performed in two sequencing runs. Sequence data were analyzed using Qiime2 version 2023.5.1, as detailed in the following documents:
+
+- [`16S_CHES_cohort/NYUCHES_R1_processing.md`](16S_CHES_cohort/NYUCHES_R1_processing.md) 
+- [`16S_CHES_cohort/NYUCHES_R2_processing.md`](16S_CHES_cohort/NYUCHES_R2_processing.md) 
 
 ## Joint variant calling pipeline
 
