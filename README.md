@@ -9,6 +9,7 @@ This document is divided into sections dedicated to separate analyses done for t
 - [Alpha diversity comparison](#alpha-diversity-comparison)
 - [Joint variant calling pipeline](#joint-variant-calling-pipeline)
 - [Mutation analysis](#mutation-analysis)
+- [Shannon entropy analysis](#shannon-entropy-analysis)
 
 ## AD cohort 16S analysis
 
@@ -146,3 +147,13 @@ R packages used were:
 - `viridis` version 0.6.5
 
 Approximate install time: 10 minutes.
+
+## Shannon entropy analysis
+
+The statistical analysis of the Shannon entropy was performed using the RMarkdown file `ShannonEntropy/Shannon-entropy-comparison.Rmd` using the accompanying input file `ShannonEntropy/Shannon-entropy.rds`. This was run using RStudio (tested on version 2024.12.0+467 with R version 4.3). The following R packages were used
+
+- `tidyverse` version 2.0.0
+
+Install time: 5 minutes.
+
+
