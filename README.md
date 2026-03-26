@@ -6,6 +6,7 @@ This document is divided into sections dedicated to separate analyses done for t
 
 - [AD cohort 16S analysis](#ad-cohort-16s-analysis)
 - [CHES cohort 16S analysis](#ches-cohort-16s-analysis)
+- [Alpha diversity comparison](#alpha-diversity-comparison)
 - [Joint variant calling pipeline](#joint-variant-calling-pipeline)
 
 ## AD cohort 16S analysis
@@ -16,6 +17,8 @@ Further 16S analysis of the AD cohort data is detailed in following RMarkdown fi
 
     16S_AD_cohort/ADCohort_16SAnalysis.Rmd
     16S_AD_cohort/ADCohort_DifferentialAbundance.Rmd
+
+Input data can be found in the `16S_AD_cohort` directory.
 
 This includes code for generating the panels of Figure 3 of the manuscript. These RMarkdown files are meant to be run form RStudio (tested on version 2024.12.0+467 with R version 4.3).
 
@@ -33,12 +36,16 @@ The following R packages were used:
 - `tidyverse` version 2.0.0
 - `vegan` version 2.7.3
 
+Approximate install time: 1 hour.
+
 ## CHES cohort 16S analysis
 
 16S amplicon sequencing was performed in two sequencing runs. Sequence data were analyzed using Qiime2 version 2023.5.1, as detailed in the following documents:
 
 - [`16S_CHES_cohort/NYUCHES_R1_processing.md`](16S_CHES_cohort/NYUCHES_R1_processing.md) 
 - [`16S_CHES_cohort/NYUCHES_R2_processing.md`](16S_CHES_cohort/NYUCHES_R2_processing.md) 
+
+Input data can be found in the `16S_CHES_cohort` directory.
 
 The process of merging these runs is described in [`16S_CHES_cohort/MergingCHESRuns.md`](16S_CHES_cohort/MergingCHESRuns.md).
 
@@ -57,6 +64,23 @@ The following R packages were used:
 - `writexl` version 1.5.4
 - `tidyverse` version 2.0.0
 - `vegan` version 2.7.3
+
+Approximate install time: 1 hour.
+
+## Alpha diversity comparison
+
+R code for the alpha diversity comparison between cohorts is provided in the RMarkdown file
+
+    Adiv_comparison/AdivComparison.Rmd
+
+with input data provided in the accompanying Excel files. The RMarkdown code was executed using RStudio version 2024.12.0+467 with R version 4.3. The following R packages were used
+
+- `ggsignif` version 0.6.4
+- `readxl` version 1.4.3
+- `writexl` version 1.5.4
+- `tidyverse` version 2.0.0
+
+Approximate install time: 30 minutes
 
 ## Joint variant calling pipeline
 
@@ -77,6 +101,8 @@ All further software will be loaded automatically via the conda environments spe
 - Python (version 3.9.7)
 - R (version 4.3.2)
 - R package rtracklayer (version 1.62.0)
+
+Approximate install time: 4 hours
 
 **Instructions**
 
