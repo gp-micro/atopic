@@ -8,6 +8,7 @@ This document is divided into sections dedicated to separate analyses done for t
 - [CHES cohort 16S analysis](#ches-cohort-16s-analysis)
 - [Alpha diversity comparison](#alpha-diversity-comparison)
 - [Joint variant calling pipeline](#joint-variant-calling-pipeline)
+- [Mutation analysis](#mutation-analysis)
 
 ## AD cohort 16S analysis
 
@@ -130,4 +131,18 @@ The following command will then generate the joint VCF files:
     CACHE=/path/to/your/conda/cache/dir
     snakemake --cores 32 --software-deployment-method conda --conda-prefix $CACHE --conda-frontend mamba process_vcf_refseq_all
 
+## Mutation analysis
 
+Analysis of mutations is described in `MutationAnalysis/MutationAnalysis.Rmd`, with input data included in the directory `MutationAnalysis`.  This was run using RStudio (tested on version 2024.12.0+467 with R version 4.3).
+
+R packages used were:
+
+
+- `ggsignif` version 0.6.4
+- `ggnewscale` version 0.5.2
+- `readxl` version 1.4.3
+- `openxlsx` version 4.2.7
+- `tidyverse` version 2.0.0
+- `viridis` version 0.6.5
+
+Approximate install time: 10 minutes.
