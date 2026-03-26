@@ -4,7 +4,12 @@ Code related to the paper "The gut-skin axis of Staphylococcus aureus colonizati
 
 This document is divided into sections dedicated to separate analyses done for the paper:
 
+- [AD cohort 16S analysis](#ad-cohort-16s-analysis)
 - [Joint variant calling pipeline](#joint-variant-calling-pipeline)
+
+## AD cohort 16S analysis
+
+16S amplicon sequence analysis was performed using Qiime2 version 2023.5.1. All Qiime2 commands are listed in the document [16S_AD_cohort/QIIME_ADCohortProcessing.md](16S_AD_cohort/QIIME_ADCohortProcessing.md)
 
 ## Joint variant calling pipeline
 
