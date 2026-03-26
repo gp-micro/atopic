@@ -17,7 +17,21 @@ Further 16S analysis of the AD cohort data is detailed in following RMarkdown fi
     16S_AD_cohort/ADCohort_16SAnalysis.Rmd
     16S_AD_cohort/ADCohort_DifferentialAbundance.Rmd
 
-This includes code for generating the panels of Figure 3 of the manuscript. These RMarkdown files are meant to be run form RStudio (tested on version 2024.12.0+467 with R version 4.4.2).
+This includes code for generating the panels of Figure 3 of the manuscript. These RMarkdown files are meant to be run form RStudio (tested on version 2024.12.0+467 with R version 4.3).
+
+The following R packages were used:
+
+- `ggpmisc` version 0.7.0
+- `ggrepel` version 0.9.8
+- `ggsignif` version 0.6.4
+- `ggtext` version 0.1.2
+- `lmerTest` version 3.2.1
+- `phyloseq` version 1.22.3
+- `qiime2R` version 0.99.6
+- `readxl` version 1.4.3
+- `writexl` version 1.5.4
+- `tidyverse` version 2.0.0
+- `vegan` version 2.7.3
 
 ## CHES cohort 16S analysis
 
@@ -28,7 +42,21 @@ This includes code for generating the panels of Figure 3 of the manuscript. Thes
 
 The process of merging these runs is described in [`16S_CHES_cohort/MergingCHESRuns.md`](16S_CHES_cohort/MergingCHESRuns.md).
 
-The resulting Qiime2 artifacts are used as input to the further analysis steps detailed in `16S_CHES_cohort/NYUCHES_16SAnalysis.Rmd`. That RMarkdown is meant to but run in RStudio (tested on on version 2024.12.0+467 with R version 4.4.2).
+The resulting Qiime2 artifacts are used as input to the further analysis steps detailed in `16S_CHES_cohort/NYUCHES_16SAnalysis.Rmd`. That RMarkdown file is meant to but run in RStudio (tested on on version 2024.12.0+467 with R version 4.3).
+
+The following R packages were used:
+
+- `ggpmisc` version 0.7.0
+- `ggrepel` version 0.9.8
+- `ggsignif` version 0.6.4
+- `ggtext` version 0.1.2
+- `lmerTest` version 3.2.1
+- `phyloseq` version 1.22.3
+- `qiime2R` version 0.99.6
+- `readxl` version 1.4.3
+- `writexl` version 1.5.4
+- `tidyverse` version 2.0.0
+- `vegan` version 2.7.3
 
 ## Joint variant calling pipeline
 
