@@ -1,0 +1,101 @@
+---
+title: "R Notebook"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r include=FALSE}
+library(tidyverse)
+library(plotly)
+```
+
+```{r}
+df.shannon <- readRDS('Shannon-entropy.rds')
+```
+
+```{r}
+df.shannon %>%
+  select(-shannon_sum) %>%
+  spread(key='site',value='n_isolates',fill=0) %>%
+  filter(Nares>=7) %>%
+  filter(Lesion>=7) %>%
+  filter(Rectum>=7)
+```
+
+```{r}
+df.shannon %>%
+  select(-shannon_sum) %>%
+  spread(key='site',value='n_isolates',fill=0) %>%
+  filter(Nares>=7) %>%
+  filter(Lesion>=7) %>%
+  filter(Rectum>=7) %>%
+  pull(cluster) %>%
+  paste0(collapse=',')
+```
+
+```{r}
+df.selection <- df.shannon %>%
+  select(-shannon_sum) %>%
+  spread(key='site',value='n_isolates',fill=0) %>%
+  filter(Nares>=7) %>%
+  filter(Lesion>=7) %>%
+  filter(Rectum>=7) %>%
+  select(cluster,subject,timepoint)
+```
+
+```{r}
+df.selected <- df.selection %>%
+  left_join(df.shannon,by=c('cluster'='cluster','subject'='subject','timepoint'='timepoint')) %>%
+  filter(site %in% c('Lesion','Nares','Rectum'))
+```
+
+```{r}
+df.selected
+```
+
+```{r}
+g <- df.selected %>%
+  mutate(group=str_glue("{cluster}_{subject}_{timepoint}")) %>%
+  ggplot(aes(site,shannon_sum,group=group, fill = subject)) + geom_point(size = 3) + geom_line(alpha=0.5) + 
+  xlab("Site") + ylab("Shannon entropy")+
+  theme_minimal() +
+  theme(text = element_text(family = "Helvetica"),
+        panel.background = element_blank(),
+        axis.text.x=element_text(size = 18, color = "black"),
+        axis.ticks.x=element_blank(), 
+        axis.line.x = element_line(colour = "black", linewidth = 0.5),
+        axis.line.y = element_line(colour = "black", linewidth = 0.5),
+        legend.position = "none", 
+        axis.title.y = element_text(size = 18),
+        axis.text.y = element_text(size = 16, color = "black"),
+        axis.title.x = element_text(size = 22),
+        strip.text.x = element_blank(),
+        plot.title = element_text(size = 20))
+ggplotly(g)
+```
+
+```{r}
+ggsave(filename='Shannon-entropy.svg',plot=g,width=5,height=4.5)
+```
+
+```{r}
+df.wide <- df.selected %>%
+  select(-n_isolates) %>%
+  spread(key='site',value='shannon_sum')
+```
+
+```{r}
+df.wide %>%
+  with(.,t.test(Lesion,Nares,paired=T))
+```
+
+```{r}
+df.wide %>%
+  with(.,t.test(Lesion,Rectum,paired=T))
+```
+
+```{r}
+df.wide %>%
+  with(.,t.test(Nares,Rectum,paired = T))
+```
