@@ -9,7 +9,14 @@ This document is divided into sections dedicated to separate analyses done for t
 
 ## AD cohort 16S analysis
 
-16S amplicon sequence analysis was performed using Qiime2 version 2023.5.1. All Qiime2 commands are listed in the document [16S_AD_cohort/QIIME_ADCohortProcessing.md](16S_AD_cohort/QIIME_ADCohortProcessing.md)
+16S amplicon sequence analysis was performed using Qiime2 version 2023.5.1. All Qiime2 commands are listed in the document [16S_AD_cohort/QIIME_ADCohortProcessing.md](16S_AD_cohort/QIIME_ADCohortProcessing.md). The resulting Qiime2 artifacts are stored in `16S_AD_cohort/QIIME_Processed/` and serve as input for further analysis.
+
+Further 16S analysis of the AD cohort data is detailed in following RMarkdown files:
+
+    16S_AD_cohort/ADCohort_16SAnalysis.Rmd
+    16S_AD_cohort/ADCohort_DifferentialAbundance.Rmd
+
+This includes code for generating the panels of Figure 3 of the manuscript. These RMarkdown files are meant to be run form RStudio (tested on version 2024.12.0+467 with R version 4.4.2).
 
 ## Joint variant calling pipeline
 
